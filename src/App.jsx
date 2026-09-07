@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabaseClient";
 import Boutique from "./Boutique";
 import GestionBoutique from "./GestionBoutique";
+import EspaceEtudiante from "./EspaceEtudiante";
 
 /* ============================================================
    MISS THANI ONLINE CLUB
@@ -682,6 +683,7 @@ export default function App() {
   const chemin = typeof window !== "undefined" ? window.location.pathname.replace(/\/+$/, "") : "";
   if (chemin === "/gestion-boutique") return <GestionBoutique />;
   if (chemin === "/boutique") return <PageBoutique />;
+  if (chemin === "/etudiante") return <EspaceEtudiante />;
 
   return <AppPrincipale />;
 }
@@ -740,7 +742,17 @@ function AppPrincipale() {
             {tab === "formation" && <VueFormation programmes={programmes} />}
             {tab === "boutique" && <Boutique />}
             {tab === "plateforme" && <VueBientot emoji="🔗" titre="Espace Plateforme" texte="Sessions en direct, communauté et certificats. Cet espace ouvre très bientôt." />}
-            {tab === "profil" && <VueBientot emoji="👤" titre="Mon profil" texte="Vos informations, votre progression et vos certificats seront réunis ici." />}
+            {tab === "profil" && (
+              <>
+                <BlocCredits />
+                <Carte style={{ marginTop: 22, textAlign: "center", padding: "26px 22px" }}>
+                  <div style={{ fontSize: 34 }}>👤</div>
+                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 700, color: C.ink, marginTop: 10 }}>Mon espace étudiante</div>
+                  <p style={{ margin: "8px 0 14px", fontSize: 12.5, color: C.inkSoft, lineHeight: 1.6 }}>Vos cours, votre présence, vos notes et vos paiements.</p>
+                  <a href="/etudiante" style={{ ...btnPrim, textDecoration: "none" }}>Ouvrir mon espace ›</a>
+                </Carte>
+              </>
+            )}
           </>
         )}
 
