@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabaseClient";
+import Boutique from "./Boutique";
+import GestionBoutique from "./GestionBoutique";
 
 /* ============================================================
    MISS THANI ONLINE CLUB
@@ -646,8 +648,45 @@ function VueBientot({ titre, texte, emoji }) {
   );
 }
 
+/* ==================== BOUTIK PIBLIK POUKONT LI (/boutique) ==================== */
+function PageBoutique() {
+  return (
+    <div style={{ minHeight: "100vh", background: `linear-gradient(180deg, ${C.bg} 0%, ${C.bg2} 100%)`, fontFamily: "'Inter', sans-serif", color: C.ink }}>
+      <style>{`
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{margin:0}
+        .mt-row::-webkit-scrollbar{display:none}
+        .mt-row{scrollbar-width:none}
+        input::placeholder{color:rgba(58,14,51,.32)}
+        @media (min-width:640px){ .mt-wrap{max-width:520px;margin:0 auto} }
+      `}</style>
+      <div className="mt-wrap" style={{ padding: "18px 20px 110px" }}>
+        <div style={{ textAlign: "center", lineHeight: 1, marginBottom: 18 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "'Cormorant Garamond',serif", fontSize: 19, fontWeight: 700, color: C.ink, letterSpacing: ".5px" }}>
+            <span>👑</span> MISS THANI
+          </div>
+          <div style={{ fontFamily: "'Dancing Script',cursive", fontSize: 20, fontWeight: 700, color: C.blush, marginTop: -2 }}>Boutique</div>
+        </div>
+        <Boutique />
+        <p style={{ textAlign: "center", fontSize: 10.5, color: C.inkFaint, marginTop: 22 }}>
+          Miss Thani Make-up &amp; Lace Club · Pétion-Ville · <a href="/" style={{ color: C.magenta, fontWeight: 700 }}>Retour à l'app</a>
+        </p>
+      </div>
+    </div>
+  );
+}
+
 /* ==================== APP ==================== */
 export default function App() {
+  /* Wout separe yo */
+  const chemin = typeof window !== "undefined" ? window.location.pathname.replace(/\/+$/, "") : "";
+  if (chemin === "/gestion-boutique") return <GestionBoutique />;
+  if (chemin === "/boutique") return <PageBoutique />;
+
+  return <AppPrincipale />;
+}
+
+function AppPrincipale() {
   const [tab, setTab] = useState("accueil");
   const [programmes, setProgrammes] = useState([]);
   const [sessions, setSessions] = useState([]);
@@ -699,7 +738,7 @@ export default function App() {
             {tab === "accueil" && (<><BlocCredits /><div style={{ marginTop: 16 }}><VueAccueil programmes={programmes} /></div></>)}
             {tab === "inscription" && <VueInscription programmes={programmes} sessions={sessions} />}
             {tab === "formation" && <VueFormation programmes={programmes} />}
-            {tab === "boutique" && <VueBientot emoji="🛍️" titre="La boutique arrive" texte="Kits, uniformes et matériel professionnel — bientôt disponibles à la commande, pour les élèves et le public." />}
+            {tab === "boutique" && <Boutique />}
             {tab === "plateforme" && <VueBientot emoji="🔗" titre="Espace Plateforme" texte="Sessions en direct, communauté et certificats. Cet espace ouvre très bientôt." />}
             {tab === "profil" && <VueBientot emoji="👤" titre="Mon profil" texte="Vos informations, votre progression et vos certificats seront réunis ici." />}
           </>
