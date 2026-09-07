@@ -137,6 +137,7 @@ export default function Boutique() {
 
       const { data: paiement, error: e1 } = await supabase.from("paiements").insert({
         objet: "commande",
+        commande_id: idsRef.current.commande,
         montant: total,
         mode,
         statut: "en_attente",
