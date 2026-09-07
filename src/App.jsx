@@ -5,6 +5,7 @@ import GestionBoutique from "./GestionBoutique";
 import EspaceEtudiante from "./EspaceEtudiante";
 import Professeur from "./Professeur";
 import Secretariat from "./Secretariat";
+import Agent from "./Agent";
 
 /* ============================================================
    MISS THANI ONLINE CLUB
@@ -688,6 +689,7 @@ export default function App() {
   if (chemin === "/etudiante") return <EspaceEtudiante />;
   if (chemin === "/professeur") return <Professeur />;
   if (chemin === "/secretariat") return <Secretariat />;
+  if (chemin === "/agent") return <Agent />;
 
   return <AppPrincipale />;
 }
