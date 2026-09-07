@@ -100,7 +100,7 @@ function Bord({ go }) {
         <Kpi l="Ventes du jour" v={gdes(ventesJour)} c={C.ink} />
         <Kpi l="Commandes à préparer" v={String(aPreparer)} c={C.blush} onClick={() => go("commandes")} />
         <Kpi l="Paiements à vérifier" v={String(enAttente)} c={C.gold} onClick={() => go("paiements")} />
-        <Kpi l="Alertes de stock" v={String(alertes.length)} c={alertes.length ? C.danger : C.green} onClick={() => go("produits")} />
+        <Kpi l="Alertes de stock" v={String(alertes.length)} c={alertes.length ? C.danger : C.green} onClick={() => go("stock")} />
       </div>
 
       <Card style={{ padding: 14, marginBottom: 14 }}>
@@ -355,6 +355,154 @@ function Paiements() {
   );
 }
 
+/* ============================ STOCK ============================ */
+function Stock() {
+  const [rows, setRows] = useState(null);
+  const [mode, setMode] = useState("stock");      // stock · inventaire
+  const [compte, setCompte] = useState({});       // { id: "12" }
+  const [histo, setHisto] = useState(null);
+  const [ok, setOk] = useState("");
+
+  const charger = async () => {
+    const { data } = await supabase.from("produits").select("*").order("ordre");
+    setRows(data || []);
+  };
+  useEffect(() => { charger(); }, []);
+
+  const bouger = async (p, d, motif) => {
+    const s = Math.max(0, Number(p.stock) + d);
+    setRows((r) => r.map((x) => (x.id === p.id ? { ...x, stock: s } : x)));
+    await supabase.from("produits").update({ stock: s }).eq("id", p.id);
+    await supabase.from("mouvements_stock").insert({ produit_id: p.id, delta: d, motif: motif || (d > 0 ? "reassort" : "correction") });
+  };
+
+  const voirHisto = async () => {
+    if (histo) { setHisto(null); return; }
+    const { data } = await supabase.from("mouvements_stock").select("*").order("cree_le", { ascending: false }).limit(50);
+    setHisto(data || []);
+  };
+
+  /* Valide envantè a: chak ekat vin yon mouvman "inventaire" */
+  const validerInventaire = async () => {
+    const changes = (rows || []).filter((p) => compte[p.id] !== undefined && compte[p.id] !== "" && Number(compte[p.id]) !== Number(p.stock));
+    for (const p of changes) {
+      const nv = Math.max(0, Number(compte[p.id]));
+      const delta = nv - Number(p.stock);
+      await supabase.from("produits").update({ stock: nv }).eq("id", p.id);
+      await supabase.from("mouvements_stock").insert({ produit_id: p.id, delta, motif: "inventaire" });
+    }
+    setCompte({});
+    setMode("stock");
+    setOk(`Inventaire validé — ${changes.length} correction${changes.length > 1 ? "s" : ""}.`);
+    setTimeout(() => setOk(""), 3500);
+    charger();
+  };
+
+  if (rows === null) return <p style={{ color: C.inkSoft, fontSize: 13 }}>Chargement…</p>;
+
+  const valeur = rows.reduce((s, p) => s + Number(p.prix_public || 0) * Number(p.stock || 0), 0);
+  const ruptures = rows.filter((p) => Number(p.stock) <= 0).length;
+  const faibles = rows.filter((p) => Number(p.stock) > 0 && Number(p.stock) <= 5).length;
+  const nomDe = (id) => (rows.find((p) => p.id === id) || {}).nom || "—";
+  const etat = (n) => (n <= 0 ? ["bad", "Rupture"] : n <= 5 ? ["warn", "Faible"] : ["ok", "OK"]);
+  const nbEcarts = rows.filter((p) => compte[p.id] !== undefined && compte[p.id] !== "" && Number(compte[p.id]) !== Number(p.stock)).length;
+
+  return (
+    <>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 12 }}>
+        <Card style={{ padding: 12 }}><div style={{ fontSize: 14, fontWeight: 800, color: C.ink }}>{gdes(valeur)}</div><div style={{ fontSize: 10.5, color: C.inkSoft, marginTop: 2 }}>Valeur du stock</div></Card>
+        <Card style={{ padding: 12 }}><div style={{ fontSize: 14, fontWeight: 800, color: ruptures ? C.danger : C.green }}>{ruptures}</div><div style={{ fontSize: 10.5, color: C.inkSoft, marginTop: 2 }}>En rupture</div></Card>
+        <Card style={{ padding: 12 }}><div style={{ fontSize: 14, fontWeight: 800, color: faibles ? "#9A7000" : C.green }}>{faibles}</div><div style={{ fontSize: 10.5, color: C.inkSoft, marginTop: 2 }}>Stock faible</div></Card>
+      </div>
+
+      {ok && <div style={{ marginBottom: 12, padding: "10px 13px", borderRadius: 12, background: "rgba(30,132,73,.10)", border: "1px solid rgba(30,132,73,.35)", fontSize: 12.5, fontWeight: 700, color: C.green }}>✓ {ok}</div>}
+
+      <div style={{ display: "flex", gap: 7, marginBottom: 14, flexWrap: "wrap" }}>
+        <button onClick={() => setMode("stock")} style={{ ...(mode === "stock" ? btnPrim : btnGhost), padding: "8px 14px", fontSize: 12 }}>Ajuster</button>
+        <button onClick={() => setMode("inventaire")} style={{ ...(mode === "inventaire" ? btnPrim : btnGhost), padding: "8px 14px", fontSize: 12 }}>📋 Faire l'inventaire</button>
+        <button onClick={voirHisto} style={{ ...btnGhost, padding: "8px 14px", fontSize: 12 }}>{histo ? "Fermer" : "Historique"}</button>
+        <button onClick={() => window.print()} style={{ ...btnGhost, padding: "8px 14px", fontSize: 12 }}>🖨</button>
+      </div>
+
+      {histo && (
+        <Card style={{ padding: 13, marginBottom: 14 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 800, color: C.ink, marginBottom: 6 }}>Mouvements récents</div>
+          {histo.length === 0 ? <p style={{ margin: 0, fontSize: 12, color: C.inkSoft }}>Aucun mouvement enregistré.</p> : histo.map((m) => (
+            <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderTop: `1px solid ${C.line}`, fontSize: 12 }}>
+              <span style={{ fontWeight: 800, color: m.delta > 0 ? C.green : C.danger, width: 32 }}>{m.delta > 0 ? "+" : ""}{m.delta}</span>
+              <span style={{ flex: 1, color: C.ink }}>{nomDe(m.produit_id)}</span>
+              <span style={{ color: C.inkFaint, fontSize: 10.5 }}>{m.motif} · {quand(m.cree_le)}</span>
+            </div>
+          ))}
+        </Card>
+      )}
+
+      {/* ---- MÒD AJISTE ---- */}
+      {mode === "stock" && rows.map((p) => {
+        const [tone, lbl] = etat(Number(p.stock));
+        return (
+          <Card key={p.id} style={{ padding: "11px 13px", marginBottom: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(229,36,126,.10)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{p.emoji}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: C.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.nom}</div>
+                <div style={{ fontSize: 10.5, color: C.inkFaint }}>{p.categorie || "—"} · {gdes(p.prix_public)}</div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
+                <button onClick={() => bouger(p, -1)} style={{ width: 30, height: 30, borderRadius: "50%", border: `1.3px solid ${C.line}`, background: "#fff", cursor: "pointer", color: C.ink, fontSize: 15 }}>−</button>
+                <span style={{ width: 30, textAlign: "center", fontSize: 15, fontWeight: 800, color: Number(p.stock) <= 0 ? C.danger : C.ink }}>{p.stock}</span>
+                <button onClick={() => bouger(p, 1)} style={{ width: 30, height: 30, borderRadius: "50%", border: "none", background: `linear-gradient(135deg, ${C.blush}, ${C.magenta})`, cursor: "pointer", color: "#fff", fontSize: 15 }}>+</button>
+              </div>
+              <Badge tone={tone}>{lbl}</Badge>
+            </div>
+            <div style={{ display: "flex", gap: 6, marginTop: 8, justifyContent: "flex-end" }}>
+              <button onClick={() => bouger(p, 5, "reassort")} style={{ ...btnGhost, padding: "5px 10px", fontSize: 11 }}>+5 réassort</button>
+              <button onClick={() => bouger(p, 10, "reassort")} style={{ ...btnGhost, padding: "5px 10px", fontSize: 11 }}>+10</button>
+            </div>
+          </Card>
+        );
+      })}
+
+      {/* ---- MÒD ENVANTÈ ---- */}
+      {mode === "inventaire" && (
+        <>
+          <Card style={{ padding: 13, marginBottom: 12, background: "rgba(224,165,10,.08)", border: "1px solid rgba(224,165,10,.40)" }}>
+            <div style={{ fontSize: 12.5, fontWeight: 800, color: C.ink }}>Comptez chaque produit dans le dépôt</div>
+            <div style={{ fontSize: 11.5, color: C.inkSoft, marginTop: 3, lineHeight: 1.5 }}>Entrez la quantité réelle trouvée. Le système calcule l'écart et corrige le stock à la validation.</div>
+          </Card>
+
+          <Card style={{ padding: 0, overflow: "hidden", marginBottom: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 58px 70px 58px", gap: 6, padding: "9px 12px", background: "rgba(194,35,142,.05)", fontSize: 10, fontWeight: 800, color: C.inkSoft, textTransform: "uppercase", letterSpacing: ".3px" }}>
+              <span>Produit</span><span style={{ textAlign: "center" }}>Système</span><span style={{ textAlign: "center" }}>Compté</span><span style={{ textAlign: "center" }}>Écart</span>
+            </div>
+            {rows.map((p) => {
+              const v = compte[p.id];
+              const ecart = v === undefined || v === "" ? null : Number(v) - Number(p.stock);
+              return (
+                <div key={p.id} style={{ display: "grid", gridTemplateColumns: "1fr 58px 70px 58px", gap: 6, alignItems: "center", padding: "9px 12px", borderTop: `1px solid ${C.line}` }}>
+                  <span style={{ fontSize: 12.5, fontWeight: 700, color: C.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.emoji} {p.nom}</span>
+                  <span style={{ textAlign: "center", fontSize: 13, fontWeight: 800, color: C.inkSoft }}>{p.stock}</span>
+                  <input inputMode="numeric" value={v === undefined ? "" : v} onChange={(e) => setCompte((c) => ({ ...c, [p.id]: e.target.value.replace(/\D/g, "") }))} placeholder="—" style={{ ...input, padding: "7px 6px", textAlign: "center", fontSize: 13, fontWeight: 800 }} />
+                  <span style={{ textAlign: "center", fontSize: 13, fontWeight: 800, color: ecart === null ? C.inkFaint : ecart === 0 ? C.green : ecart > 0 ? C.magenta : C.danger }}>
+                    {ecart === null ? "—" : ecart > 0 ? "+" + ecart : ecart}
+                  </span>
+                </div>
+              );
+            })}
+          </Card>
+
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => { setMode("stock"); setCompte({}); }} style={{ ...btnGhost, flex: 1, justifyContent: "center" }}>Annuler</button>
+            <button onClick={validerInventaire} disabled={nbEcarts === 0} style={{ ...btnPrim, flex: 2, justifyContent: "center", opacity: nbEcarts === 0 ? 0.5 : 1, cursor: nbEcarts === 0 ? "not-allowed" : "pointer" }}>
+              ✓ Valider l'inventaire{nbEcarts ? ` (${nbEcarts} écart${nbEcarts > 1 ? "s" : ""})` : ""}
+            </button>
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
 /* ============================ PWODWI ============================ */
 function Produits() {
   const [rows, setRows] = useState(null);
@@ -523,7 +671,7 @@ export default function GestionBoutique() {
     );
   }
 
-  const TABS = [{ k: "bord", l: "Bord" }, { k: "commandes", l: "Commandes" }, { k: "paiements", l: "Paiements" }, { k: "produits", l: "Produits" }, { k: "clientes", l: "Clientes" }];
+  const TABS = [{ k: "bord", l: "Bord" }, { k: "commandes", l: "Commandes" }, { k: "paiements", l: "Paiements" }, { k: "stock", l: "Stock" }, { k: "produits", l: "Produits" }, { k: "clientes", l: "Clientes" }];
 
   return (
     <div style={shell}>
@@ -546,6 +694,7 @@ export default function GestionBoutique() {
         {tab === "bord" && <Bord go={setTab} />}
         {tab === "commandes" && <Commandes />}
         {tab === "paiements" && <Paiements />}
+        {tab === "stock" && <Stock />}
         {tab === "produits" && <Produits />}
         {tab === "clientes" && <Clientes />}
       </main>
