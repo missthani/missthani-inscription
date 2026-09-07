@@ -3,6 +3,7 @@ import { supabase } from "./supabaseClient";
 import Boutique from "./Boutique";
 import GestionBoutique from "./GestionBoutique";
 import EspaceEtudiante from "./EspaceEtudiante";
+import Professeur from "./Professeur";
 
 /* ============================================================
    MISS THANI ONLINE CLUB
@@ -684,6 +685,7 @@ export default function App() {
   if (chemin === "/gestion-boutique") return <GestionBoutique />;
   if (chemin === "/boutique") return <PageBoutique />;
   if (chemin === "/etudiante") return <EspaceEtudiante />;
+  if (chemin === "/professeur") return <Professeur />;
 
   return <AppPrincipale />;
 }
