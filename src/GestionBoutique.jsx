@@ -49,6 +49,154 @@ const btnPrim = { border: "none", borderRadius: 999, padding: "9px 16px", backgr
 const btnGhost = { border: `1.3px solid ${C.line}`, borderRadius: 999, padding: "8px 14px", background: "#fff", color: C.ink, fontSize: 12.5, fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap", fontFamily: "'Inter',sans-serif" };
 const input = { width: "100%", padding: "10px 12px", borderRadius: 11, border: `1.3px solid ${C.line}`, background: "#fff", color: C.ink, fontSize: 13, fontFamily: "'Inter',sans-serif", outline: "none" };
 
+/* ============================ TABLEAU DE BORD ============================ */
+function Bord({ go }) {
+  const [d, setD] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      const [c, p, pa] = await Promise.all([
+        supabase.from("commandes").select("*").order("cree_le", { ascending: false }),
+        supabase.from("produits").select("*"),
+        supabase.from("paiements").select("*").eq("objet", "commande"),
+      ]);
+      setD({ commandes: c.data || [], produits: p.data || [], paiements: pa.data || [] });
+    })();
+  }, []);
+
+  if (!d) return <p style={{ color: C.inkSoft, fontSize: 13 }}>Chargement…</p>;
+
+  const jour = (iso) => (iso || "").slice(0, 10);
+  const aujourdhui = new Date().toISOString().slice(0, 10);
+  const valides = d.commandes.filter((c) => c.statut !== "annulee");
+  const ventesJour = valides.filter((c) => jour(c.cree_le) === aujourdhui).reduce((s, c) => s + Number(c.total || 0), 0);
+  const aPreparer = d.commandes.filter((c) => c.statut === "a_preparer").length;
+  const enAttente = d.paiements.filter((p) => p.statut === "en_attente").length;
+  const alertes = d.produits.filter((p) => Number(p.stock) <= 5);
+
+  /* 7 dènye jou yo */
+  const jours = [];
+  for (let i = 6; i >= 0; i--) {
+    const dt = new Date(); dt.setDate(dt.getDate() - i);
+    const iso = dt.toISOString().slice(0, 10);
+    const v = valides.filter((c) => jour(c.cree_le) === iso).reduce((s, c) => s + Number(c.total || 0), 0);
+    jours.push({ iso, l: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"][dt.getDay()], v });
+  }
+  const max = Math.max(1, ...jours.map((j) => j.v));
+  const semaine = jours.reduce((s, j) => s + j.v, 0);
+
+  const Kpi = ({ l, v, c, onClick }) => (
+    <Card style={{ padding: 13, cursor: onClick ? "pointer" : "default" }}>
+      <div onClick={onClick}>
+        <div style={{ fontSize: 20, fontWeight: 800, color: c, lineHeight: 1.1 }}>{v}</div>
+        <div style={{ fontSize: 11, color: C.inkSoft, marginTop: 3 }}>{l}</div>
+      </div>
+    </Card>
+  );
+
+  return (
+    <>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+        <Kpi l="Ventes du jour" v={gdes(ventesJour)} c={C.ink} />
+        <Kpi l="Commandes à préparer" v={String(aPreparer)} c={C.blush} onClick={() => go("commandes")} />
+        <Kpi l="Paiements à vérifier" v={String(enAttente)} c={C.gold} onClick={() => go("paiements")} />
+        <Kpi l="Alertes de stock" v={String(alertes.length)} c={alertes.length ? C.danger : C.green} onClick={() => go("produits")} />
+      </div>
+
+      <Card style={{ padding: 14, marginBottom: 14 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <span style={{ fontSize: 13.5, fontWeight: 800, color: C.ink }}>Ventes — 7 derniers jours</span>
+          <Badge tone="info">{gdes(semaine)}</Badge>
+        </div>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 110 }}>
+          {jours.map((j) => (
+            <div key={j.iso} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, height: "100%", justifyContent: "flex-end" }}>
+              <span style={{ fontSize: 9, fontWeight: 800, color: C.inkSoft }}>{j.v ? (j.v >= 1000 ? (j.v / 1000).toFixed(1) + "k" : j.v) : ""}</span>
+              <div style={{ width: "100%", height: `${(j.v / max) * 100}%`, minHeight: j.v ? 6 : 2, borderRadius: "5px 5px 0 0", background: j.v ? `linear-gradient(180deg, ${C.blush}, ${C.magenta})` : "rgba(142,44,154,.10)" }} />
+              <span style={{ fontSize: 9.5, color: C.inkFaint, fontWeight: 700 }}>{j.l}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {alertes.length > 0 && (
+        <Card style={{ padding: 14, marginBottom: 14 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 800, color: C.ink, marginBottom: 8 }}>Stock faible</div>
+          {alertes.map((p, i) => (
+            <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderTop: i ? `1px solid ${C.line}` : "none" }}>
+              <span style={{ fontSize: 18 }}>{p.emoji}</span>
+              <span style={{ flex: 1, fontSize: 12.5, fontWeight: 700, color: C.ink }}>{p.nom}</span>
+              <Badge tone={Number(p.stock) <= 0 ? "bad" : "warn"}>{Number(p.stock) <= 0 ? "Rupture" : p.stock + " restants"}</Badge>
+            </div>
+          ))}
+        </Card>
+      )}
+
+      <Card style={{ padding: 14 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 800, color: C.ink, marginBottom: 8 }}>Dernières commandes</div>
+        {d.commandes.slice(0, 4).map((c, i) => {
+          const st = statutDe(c.statut);
+          return (
+            <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderTop: i ? `1px solid ${C.line}` : "none" }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: C.ink }}>{c.nom_client || "Sans nom"}</div>
+                <div style={{ fontSize: 10.5, color: C.inkFaint }}>{quand(c.cree_le)}</div>
+              </div>
+              <span style={{ fontSize: 12.5, fontWeight: 800, color: C.magenta }}>{gdes(c.total)}</span>
+              <Badge tone={st.tone}>{st.l}</Badge>
+            </div>
+          );
+        })}
+        {d.commandes.length === 0 && <p style={{ margin: 0, fontSize: 12.5, color: C.inkSoft }}>Aucune commande encore.</p>}
+      </Card>
+    </>
+  );
+}
+
+/* ============================ KLIYAN ============================ */
+function Clientes() {
+  const [rows, setRows] = useState(null);
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from("commandes").select("*").neq("statut", "annulee");
+      const m = {};
+      (data || []).forEach((c) => {
+        const k = c.telephone || c.nom_client;
+        if (!m[k]) m[k] = { nom: c.nom_client, tel: c.telephone, n: 0, total: 0, dernier: c.cree_le };
+        m[k].n += 1; m[k].total += Number(c.total || 0);
+        if (c.cree_le > m[k].dernier) m[k].dernier = c.cree_le;
+      });
+      setRows(Object.values(m).sort((a, b) => b.total - a.total));
+    })();
+  }, []);
+
+  if (rows === null) return <p style={{ color: C.inkSoft, fontSize: 13 }}>Chargement…</p>;
+  if (rows.length === 0) return <Card style={{ padding: 26, textAlign: "center" }}><p style={{ margin: 0, fontSize: 13, color: C.inkSoft }}>Aucune cliente pour le moment.</p></Card>;
+
+  return (
+    <>
+      <div style={{ marginBottom: 12 }}><Badge tone="info">{rows.length} cliente{rows.length > 1 ? "s" : ""}</Badge></div>
+      {rows.map((c) => (
+        <Card key={c.tel || c.nom} style={{ padding: 13, marginBottom: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
+            <span style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(229,36,126,.10)", color: C.magenta, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800, flexShrink: 0 }}>
+              {(c.nom || "?").split(" ").map((x) => x[0]).slice(0, 2).join("")}
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 800, color: C.ink }}>{c.nom || "Sans nom"}</div>
+              <div style={{ fontSize: 11.5, color: C.inkSoft, marginTop: 2 }}>{c.tel} · {c.n} commande{c.n > 1 ? "s" : ""} · dernière {quand(c.dernier)}</div>
+            </div>
+            <span style={{ fontSize: 13, fontWeight: 800, color: C.magenta }}>{gdes(c.total)}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
+            <a href={`https://wa.me/509${c.tel}`} target="_blank" rel="noopener noreferrer" style={{ ...btnGhost, padding: "6px 12px", fontSize: 11.5, color: C.green, borderColor: "rgba(30,132,73,.35)", textDecoration: "none" }}>Écrire</a>
+          </div>
+        </Card>
+      ))}
+    </>
+  );
+}
+
 /* ============================ KÒMAND ============================ */
 function Commandes() {
   const [rows, setRows] = useState(null);
@@ -232,10 +380,17 @@ function Produits() {
     setRows((r) => r.map((x) => (x.id === p.id ? { ...x, visible: !p.visible } : x)));
     await supabase.from("produits").update({ visible: !p.visible }).eq("id", p.id);
   };
-  const stock = async (p, d) => {
+  const stock = async (p, d, motif) => {
     const s = Math.max(0, Number(p.stock) + d);
     setRows((r) => r.map((x) => (x.id === p.id ? { ...x, stock: s } : x)));
     await supabase.from("produits").update({ stock: s }).eq("id", p.id);
+    await supabase.from("mouvements_stock").insert({ produit_id: p.id, delta: d, motif: motif || (d > 0 ? "reassort" : "correction") });
+  };
+  const [histo, setHisto] = useState(null);
+  const voirHisto = async () => {
+    if (histo) { setHisto(null); return; }
+    const { data } = await supabase.from("mouvements_stock").select("*").order("cree_le", { ascending: false }).limit(40);
+    setHisto(data || []);
   };
   const ajouter = async () => {
     if (!nv.nom.trim()) return;
@@ -248,13 +403,36 @@ function Produits() {
 
   if (rows === null) return <p style={{ color: C.inkSoft, fontSize: 13 }}>Chargement…</p>;
   const alertes = rows.filter((p) => Number(p.stock) <= 5).length;
+  const valeur = rows.reduce((s, p) => s + Number(p.prix_public || 0) * Number(p.stock || 0), 0);
+  const nomDe = (id) => (rows.find((p) => p.id === id) || {}).nom || "—";
 
   return (
     <>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 14 }}>
-        <Badge tone={alertes ? "warn" : "ok"}>{alertes} alerte{alertes > 1 ? "s" : ""} de stock</Badge>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 12 }}>
+        <Card style={{ padding: 12 }}><div style={{ fontSize: 14, fontWeight: 800, color: C.ink }}>{gdes(valeur)}</div><div style={{ fontSize: 10.5, color: C.inkSoft, marginTop: 2 }}>Valeur du stock</div></Card>
+        <Card style={{ padding: 12 }}><div style={{ fontSize: 14, fontWeight: 800, color: alertes ? C.danger : C.green }}>{alertes}</div><div style={{ fontSize: 10.5, color: C.inkSoft, marginTop: 2 }}>Alertes</div></Card>
+        <Card style={{ padding: 12 }}><div style={{ fontSize: 14, fontWeight: 800, color: C.ink }}>{rows.length}</div><div style={{ fontSize: 10.5, color: C.inkSoft, marginTop: 2 }}>Références</div></Card>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 7 }}>
+          <button onClick={voirHisto} style={{ ...btnGhost, padding: "7px 12px", fontSize: 11.5 }}>{histo ? "Fermer l'historique" : "Historique"}</button>
+          <button onClick={() => window.print()} style={{ ...btnGhost, padding: "7px 12px", fontSize: 11.5 }}>🖨 Inventaire</button>
+        </div>
         <button onClick={() => setNouveau((v) => !v)} style={btnPrim}>+ Produit</button>
       </div>
+
+      {histo && (
+        <Card style={{ padding: 13, marginBottom: 14 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 800, color: C.ink, marginBottom: 6 }}>Mouvements récents</div>
+          {histo.length === 0 ? <p style={{ margin: 0, fontSize: 12, color: C.inkSoft }}>Aucun mouvement enregistré.</p> : histo.map((m) => (
+            <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderTop: `1px solid ${C.line}`, fontSize: 12 }}>
+              <span style={{ fontWeight: 800, color: m.delta > 0 ? C.green : C.danger, width: 32 }}>{m.delta > 0 ? "+" : ""}{m.delta}</span>
+              <span style={{ flex: 1, color: C.ink }}>{nomDe(m.produit_id)}</span>
+              <span style={{ color: C.inkFaint, fontSize: 10.5 }}>{m.motif} · {quand(m.cree_le)}</span>
+            </div>
+          ))}
+        </Card>
+      )}
 
       {nouveau && (
         <Card style={{ padding: 14, marginBottom: 14, borderColor: "rgba(229,36,126,.40)" }}>
@@ -322,7 +500,7 @@ export default function GestionBoutique() {
   const [ok, setOk] = useState(() => { try { return sessionStorage.getItem("mt_gb") === "1"; } catch (e) { return false; } });
   const [pwd, setPwd] = useState("");
   const [err, setErr] = useState("");
-  const [tab, setTab] = useState("commandes");
+  const [tab, setTab] = useState("bord");
 
   const entrer = () => {
     if (pwd === MOT_DE_PASSE) { setOk(true); try { sessionStorage.setItem("mt_gb", "1"); } catch (e) {} }
@@ -345,7 +523,7 @@ export default function GestionBoutique() {
     );
   }
 
-  const TABS = [{ k: "commandes", l: "Commandes" }, { k: "paiements", l: "Paiements" }, { k: "produits", l: "Produits" }];
+  const TABS = [{ k: "bord", l: "Bord" }, { k: "commandes", l: "Commandes" }, { k: "paiements", l: "Paiements" }, { k: "produits", l: "Produits" }, { k: "clientes", l: "Clientes" }];
 
   return (
     <div style={shell}>
@@ -356,18 +534,20 @@ export default function GestionBoutique() {
             <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 17, fontWeight: 700 }}>👑 MISS THANI</div>
             <div style={{ fontSize: 9, letterSpacing: "2px", color: C.magenta, fontWeight: 700, marginTop: 3 }}>GESTION BOUTIQUE</div>
           </div>
-          <div style={{ display: "flex", gap: 6 }}>
+          <div className="mt-row" style={{ display: "flex", gap: 6, overflowX: "auto", maxWidth: "62%" }}>
             {TABS.map((t) => {
               const on = tab === t.k;
-              return <button key={t.k} onClick={() => setTab(t.k)} style={{ padding: "7px 13px", borderRadius: 999, fontSize: 11.5, fontWeight: 700, cursor: "pointer", border: `1.3px solid ${on ? C.magenta : C.line}`, background: on ? C.magenta : "#fff", color: on ? "#fff" : C.ink }}>{t.l}</button>;
+              return <button key={t.k} onClick={() => setTab(t.k)} style={{ flexShrink: 0, padding: "7px 13px", borderRadius: 999, fontSize: 11.5, fontWeight: 700, cursor: "pointer", border: `1.3px solid ${on ? C.magenta : C.line}`, background: on ? C.magenta : "#fff", color: on ? "#fff" : C.ink, whiteSpace: "nowrap" }}>{t.l}</button>;
             })}
           </div>
         </div>
       </header>
       <main style={{ maxWidth: 640, margin: "0 auto", padding: "16px 16px 40px" }}>
+        {tab === "bord" && <Bord go={setTab} />}
         {tab === "commandes" && <Commandes />}
         {tab === "paiements" && <Paiements />}
         {tab === "produits" && <Produits />}
+        {tab === "clientes" && <Clientes />}
       </main>
     </div>
   );
