@@ -8,6 +8,7 @@ import Secretariat from "./Secretariat";
 import Agent from "./Agent";
 import Ambassadrice from "./Ambassadrice";
 import Affiliation from "./Affiliation";
+import Comptabilite from "./Comptabilite";
 
 /* ============================================================
    MISS THANI ONLINE CLUB
@@ -714,6 +715,7 @@ export default function App() {
   if (chemin === "/agent") return <Agent />;
   if (chemin === "/ambassadrice") return <Ambassadrice />;
   if (chemin === "/affiliation") return <Affiliation />;
+  if (chemin === "/comptabilite") return <Comptabilite />;
 
   return <AppPrincipale />;
 }
