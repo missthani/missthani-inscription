@@ -7,6 +7,7 @@ import Professeur from "./Professeur";
 import Secretariat from "./Secretariat";
 import Agent from "./Agent";
 import Ambassadrice from "./Ambassadrice";
+import Affiliation from "./Affiliation";
 
 /* ============================================================
    MISS THANI ONLINE CLUB
@@ -73,6 +74,18 @@ function telOk(v) {
   if (d.startsWith("00")) d = d.slice(2);
   if (d.length === 11 && d.startsWith("509")) d = d.slice(3);
   return /^[234]\d{7}$/.test(d) ? d : "";
+}
+
+function enregistrerClic(cible) {
+  try {
+    const u = new URLSearchParams(window.location.search || "");
+    const r = (u.get("ref") || u.get("a") || "").trim();
+    if (!r) return;
+    const k = "mt_clic_" + r + "_" + cible;
+    if (sessionStorage.getItem(k)) return;
+    sessionStorage.setItem(k, "1");
+    supabase.from("clics").insert({ etiquette: r, cible: u.get("c") || cible }).then(() => {});
+  } catch (e) {}
 }
 
 function refAgent() {
@@ -662,6 +675,7 @@ function VueBientot({ titre, texte, emoji }) {
 
 /* ==================== BOUTIK PIBLIK POUKONT LI (/boutique) ==================== */
 function PageBoutique() {
+  useEffect(() => { enregistrerClic("boutique"); }, []);
   return (
     <div style={{ minHeight: "100vh", background: `linear-gradient(180deg, ${C.bg} 0%, ${C.bg2} 100%)`, fontFamily: "'Inter', sans-serif", color: C.ink }}>
       <style>{`
@@ -699,6 +713,7 @@ export default function App() {
   if (chemin === "/secretariat") return <Secretariat />;
   if (chemin === "/agent") return <Agent />;
   if (chemin === "/ambassadrice") return <Ambassadrice />;
+  if (chemin === "/affiliation") return <Affiliation />;
 
   return <AppPrincipale />;
 }
@@ -720,6 +735,7 @@ function AppPrincipale() {
   }, []);
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "auto" }); }, [tab]);
+  useEffect(() => { enregistrerClic("accueil"); }, []);
 
   return (
     <div style={{ minHeight: "100vh", background: `linear-gradient(180deg, ${C.bg} 0%, ${C.bg2} 100%)`, fontFamily: "'Inter', sans-serif", color: C.ink }}>
