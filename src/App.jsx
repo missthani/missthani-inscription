@@ -10,6 +10,7 @@ import Ambassadrice from "./Ambassadrice";
 import Affiliation from "./Affiliation";
 import Comptabilite from "./Comptabilite";
 import Carrieres from "./Carrieres";
+import Memoire from "./Memoire";
 
 /* ============================================================
    MISS THANI ONLINE CLUB
@@ -718,6 +719,7 @@ export default function App() {
   if (chemin === "/affiliation") return <Affiliation />;
   if (chemin === "/comptabilite") return <Comptabilite />;
   if (chemin === "/carrieres") return <Carrieres />;
+  if (chemin === "/memoire") return <Memoire />;
 
   return <AppPrincipale />;
 }
