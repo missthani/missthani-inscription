@@ -12,6 +12,7 @@ import Comptabilite from "./Comptabilite";
 import Carrieres from "./Carrieres";
 import Memoire from "./Memoire";
 import Admin from "./Admin";
+import Parametres from "./Parametres";
 
 /* ============================================================
    MISS THANI ONLINE CLUB
@@ -34,19 +35,37 @@ const C = {
   line: "rgba(142,44,154,.14)",
 };
 
-const PAIEMENT = { moncash: "509 4643 3016", natcash: "509 4643 3016" };
+/* Paramèt yo (tab `parametres`) — ak valè default si tab la vid */
+const DEFAUTS = {
+  nom: "MISS THANI", sous_titre: "Online Club", pied: "Miss Thani Make-up & Lace Club · Pétion-Ville",
+  couleur_1: "#E5247E", couleur_2: "#C2238E",
+  carla_actif: "oui", carla_bienvenue: "Bonjour ! Je suis Carla, votre assistante. Comment puis-je vous aider ?",
+  carla_reponse: "Merci ! Un membre de notre équipe vous répond très vite. Vous pouvez aussi nous écrire sur WhatsApp.",
+  sec_categories: "oui", sec_reprendre: "oui", sec_dernieres: "oui", credits_actif: "oui",
+  insc_titre: "Inscrivez-vous à nos programmes", insc_e1: "Choisissez vos programmes", insc_e2: "Inscrivez votre nom et prénom", insc_e3: "Entrez vos numéros de contact", insc_e4: "Inscrivez votre adresse",
+  insc_felicitations: "Votre pré-inscription est enregistrée. Finalisez-la en payant les frais via MonCash ou NatCash, puis envoyez-nous la photo de la preuve de paiement.",
+  insc_recu: "Nous vérifions votre transaction. Vous pouvez nous appeler à tout moment sur nos numéros pour un suivi plus rapide.",
+  insc_bienvenue: "Vous recevrez la date de votre session sur WhatsApp.",
+  moncash: "509 4643 3016", natcash: "509 4643 3016", whatsapp: "50946433016",
+  note_remboursement: "Ces frais demeurent intégralement remboursables dans l'hypothèse où, après avoir pris connaissance du règlement intérieur de l'établissement, vous choisiriez de ne pas y souscrire.",
+  regles: "Port de l'uniforme|Le port de l'uniforme de l'académie est obligatoire à chaque séance de cours. Toute élève qui se présente sans son uniforme peut être renvoyée pour la journée.\nPonctualité et présence|Les cours commencent à l'heure indiquée. Trois absences non justifiées peuvent entraîner le retrait de votre place dans la session.\nMatériel de l'académie|Le matériel prêté par l'académie reste sa propriété. Tout matériel perdu ou endommagé est à la charge de l'élève.",
+  regles_note: "En cliquant sur « J'accepte », vous reconnaissez avoir pris connaissance du règlement intérieur de l'établissement et vous en approuvez l'intégralité des dispositions. Cette acceptation conditionne votre admission au sein de l'école. À défaut d'acceptation, les frais d'inscription vous seront intégralement restitués et votre intégration ne pourra être effectuée.",
+};
+let PARAMS = { ...DEFAUTS };
+async function chargerParams() {
+  try {
+    const { data } = await supabase.from("parametres").select("cle, valeur");
+    (data || []).forEach((x) => { if (x.valeur !== null && x.valeur !== "") PARAMS[x.cle] = x.valeur; });
+  } catch (e) {}
+  C.blush = PARAMS.couleur_1 || C.blush;
+  C.magenta = PARAMS.couleur_2 || C.magenta;
+  return PARAMS;
+}
+const reglesDe = () => String(PARAMS.regles || "").split("\n").filter(Boolean).map((l) => { const [titre, texte] = l.split("|"); return { titre: titre || "", texte: texte || "" }; });
 
-const REGLES = [
-  { titre: "Port de l'uniforme", texte: "Le port de l'uniforme de l'académie est obligatoire à chaque séance de cours. Toute élève qui se présente sans son uniforme peut être renvoyée pour la journée." },
-  { titre: "Ponctualité et présence", texte: "Les cours commencent à l'heure indiquée. Trois absences non justifiées peuvent entraîner le retrait de votre place dans la session." },
-  { titre: "Matériel de l'académie", texte: "Le matériel prêté par l'académie reste sa propriété. Tout matériel perdu ou endommagé est à la charge de l'élève." },
-];
 
-const ETAPES = [
-  { t: "Étape 1", s: "Choisissez vos programmes" },
-  { t: "Étape 2", s: "Inscrivez votre nom et prénom" },
-  { t: "Étape 3", s: "Entrez vos numéros de contact" },
-  { t: "Étape 4", s: "Inscrivez votre adresse" },
+const etapesDe = () => [
+  { t: "Étape 1", s: PARAMS.insc_e1 }, { t: "Étape 2", s: PARAMS.insc_e2 }, { t: "Étape 3", s: PARAMS.insc_e3 }, { t: "Étape 4", s: PARAMS.insc_e4 },
 ];
 
 const TABS = [
@@ -148,7 +167,7 @@ function TitreSection({ children, action }) {
 
 /* ==================== BLÒK CARLA ==================== */
 function BlocCarla() {
-  const [msgs, setMsgs] = useState([{ from: "carla", text: "Bonjour ! Je suis Carla, votre assistante. Comment puis-je vous aider ?" }]);
+  const [msgs, setMsgs] = useState([{ from: "carla", text: PARAMS.carla_bienvenue }]);
   const [draft, setDraft] = useState("");
   const listRef = useRef(null);
 
@@ -160,7 +179,7 @@ function BlocCarla() {
     setMsgs((m) => [...m, { from: "moi", text: t }]);
     setDraft("");
     setTimeout(() => {
-      setMsgs((m) => [...m, { from: "carla", text: "Merci ! Un membre de notre équipe vous répond très vite. Vous pouvez aussi nous écrire sur WhatsApp au 4643 3016." }]);
+      setMsgs((m) => [...m, { from: "carla", text: PARAMS.carla_reponse }]);
     }, 700);
   };
 
@@ -237,6 +256,8 @@ function BlocInscription({ programmes, sessions }) {
     return () => cancelAnimationFrame(raf);
   }, [etape, phase, programmes.length]);
 
+  const ETAPES = etapesDe();
+  const REGLES = reglesDe();
   const set = (k, v) => { setF((x) => ({ ...x, [k]: v })); setErreur(""); };
   const toggleProg = (id) => setF((x) => ({ ...x, programmes: x.programmes.includes(id) ? x.programmes.filter((p) => p !== id) : [...x.programmes, id] }));
 
@@ -338,11 +359,9 @@ function BlocInscription({ programmes, sessions }) {
     return (
       <div style={{ ...shell, minHeight: BLOC_H }}>
         <TitreBloc>Félicitations {f.prenom} !</TitreBloc>
-        <p style={{ margin: "10px 0 12px", fontSize: 12.5, color: C.inkSoft, lineHeight: 1.5 }}>
-          Votre pré-inscription est enregistrée. Finalisez-la en payant les frais via MonCash ou NatCash, puis envoyez-nous la photo de la preuve de paiement.
-        </p>
+        <p style={{ margin: "10px 0 12px", fontSize: 12.5, color: C.inkSoft, lineHeight: 1.5 }}>{PARAMS.insc_felicitations}</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 10 }}>
-          {[["MonCash", PAIEMENT.moncash], ["NatCash", PAIEMENT.natcash]].map(([nom, num]) => (
+          {[["MonCash", PARAMS.moncash], ["NatCash", PARAMS.natcash]].map(([nom, num]) => (
             <div key={nom} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "10px 13px", borderRadius: 12, border: `1px solid ${C.line}`, background: "#FCF7FA" }}>
               <span style={{ fontSize: 12, fontWeight: 800, color: C.magenta }}>{nom}</span>
               <span style={{ fontSize: 13.5, fontWeight: 700, color: C.ink }}>{num}</span>
@@ -353,16 +372,14 @@ function BlocInscription({ programmes, sessions }) {
           <span style={{ fontSize: 12, fontWeight: 700, color: C.inkSoft }}>Montant à payer</span>
           <span style={{ fontSize: 16, fontWeight: 800, color: C.blush }}>{total.toLocaleString("fr-FR")} gdes</span>
         </div>
-        <p style={{ margin: "0 0 12px", fontSize: 10, color: C.inkFaint, lineHeight: 1.5 }}>
-          Ces frais demeurent intégralement remboursables dans l'hypothèse où, après avoir pris connaissance du règlement intérieur de l'établissement, vous choisiriez de ne pas y souscrire.
-        </p>
+        <p style={{ margin: "0 0 12px", fontSize: 10, color: C.inkFaint, lineHeight: 1.5 }}>{PARAMS.note_remboursement}</p>
         {erreur && <p style={{ fontSize: 12, color: C.danger, margin: "0 0 10px", lineHeight: 1.5 }}>{erreur}</p>}
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <label style={{ ...btnPrim, width: "100%", opacity: busy ? 0.6 : 1 }}>
             {busy ? "Envoi en cours…" : "📷 Envoyer la preuve de paiement"}
             <input type="file" accept="image/*" style={{ display: "none" }} disabled={busy} onChange={(e) => envoyerPreuve(e.target.files && e.target.files[0], "moncash")} />
           </label>
-          <a href={`https://wa.me/50946433016?text=${encodeURIComponent(`Bonjou, mwen se ${f.prenom} ${f.nom}. Mwen fè yon pre-enskripsyon epi mwen ta renmen pale ak yon ajan anvan.`)}`} target="_blank" rel="noopener noreferrer" style={{ ...btnGhost, width: "100%", textDecoration: "none" }}>
+          <a href={`https://wa.me/${PARAMS.whatsapp}?text=${encodeURIComponent(`Bonjou, mwen se ${f.prenom} ${f.nom}. Mwen fè yon pre-enskripsyon epi mwen ta renmen pale ak yon ajan anvan.`)}`} target="_blank" rel="noopener noreferrer" style={{ ...btnGhost, width: "100%", textDecoration: "none" }}>
             Je souhaite d'abord parler à un agent
           </a>
         </div>
@@ -376,7 +393,7 @@ function BlocInscription({ programmes, sessions }) {
       <div style={{ ...shell, minHeight: BLOC_H }}>
         <TitreBloc>Nous avons reçu votre photo</TitreBloc>
         <p style={{ margin: "12px 0 12px", fontSize: 12.5, color: C.inkSoft, lineHeight: 1.55 }}>
-          Félicitations {f.prenom} ! Nous vérifions votre transaction. Vous pouvez nous appeler à tout moment sur nos numéros pour un suivi plus rapide.
+          Félicitations {f.prenom} ! {PARAMS.insc_recu}
         </p>
         <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 13px", borderRadius: 12, background: "rgba(224,165,10,.10)", border: "1px solid rgba(224,165,10,.45)" }}>
           <span style={{ width: 8, height: 8, borderRadius: 999, background: C.gold, flexShrink: 0 }} />
@@ -398,9 +415,7 @@ function BlocInscription({ programmes, sessions }) {
         </div>
         <p style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 500, color: C.ink, lineHeight: 1.6 }}>{REGLES[regleIdx].texte}</p>
         <div style={{ paddingTop: 10, borderTop: `1px solid ${C.line}`, marginBottom: 14 }}>
-          <p style={{ margin: 0, fontSize: 10, color: C.inkFaint, lineHeight: 1.5 }}>
-            En cliquant sur « J'accepte », vous reconnaissez avoir pris connaissance du règlement intérieur de l'établissement et vous en approuvez l'intégralité des dispositions. Cette acceptation conditionne votre admission au sein de l'école. À défaut d'acceptation, les frais d'inscription vous seront intégralement restitués et votre intégration ne pourra être effectuée.
-          </p>
+          <p style={{ margin: 0, fontSize: 10, color: C.inkFaint, lineHeight: 1.5 }}>{PARAMS.regles_note}</p>
         </div>
         <button onClick={accepterRegle} style={{ ...btnPrim, width: "100%" }}>✓ J'accepte</button>
         <div style={{ display: "flex", gap: 4, marginTop: 12 }}>
@@ -417,7 +432,7 @@ function BlocInscription({ programmes, sessions }) {
         <div style={{ width: 44, height: 44, borderRadius: "50%", background: `linear-gradient(150deg, ${C.blush}, ${C.magenta})`, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 21, fontWeight: 800 }}>✓</div>
         <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 19, fontWeight: 700, color: C.ink }}>Bienvenue au Club, {f.prenom} !</div>
         <p style={{ margin: 0, fontSize: 12.5, color: C.inkSoft, lineHeight: 1.5 }}>
-          Votre inscription est complète pour <strong style={{ color: C.magenta }}>{programmes.filter((p) => f.programmes.includes(p.id)).map((p) => p.nom).join(", ")}</strong>. Vous recevrez la date de votre session sur WhatsApp.
+          Votre inscription est complète pour <strong style={{ color: C.magenta }}>{programmes.filter((p) => f.programmes.includes(p.id)).map((p) => p.nom).join(", ")}</strong>. {PARAMS.insc_bienvenue}
         </p>
         <button onClick={recommencer} style={{ border: "none", background: "none", cursor: "pointer", fontSize: 11.5, fontWeight: 700, color: C.inkFaint, marginTop: 4 }}>Faire une nouvelle inscription</button>
       </div>
@@ -427,7 +442,7 @@ function BlocInscription({ programmes, sessions }) {
   /* ---- Fòm 4 etap ---- */
   return (
     <div style={{ ...shell, height: BLOC_H }}>
-      <TitreBloc>Inscrivez-vous à nos programmes</TitreBloc>
+      <TitreBloc>{PARAMS.insc_titre}</TitreBloc>
 
       <div style={{ display: "flex", alignItems: "center", gap: 6, margin: "12px 0 10px" }}>
         <span style={{ fontSize: 10.5, fontWeight: 800, color: "#fff", background: C.magenta, padding: "2.5px 8px", borderRadius: 999, flexShrink: 0 }}>{ETAPES[etape].t}</span>
@@ -489,9 +504,9 @@ function VueAccueil({ programmes }) {
   const progres = 39;
   return (
     <>
-      <BlocCarla />
+      {PARAMS.carla_actif === "oui" && <BlocCarla />}
 
-      <div style={{ marginTop: 22 }}>
+      {PARAMS.sec_categories === "oui" && <div style={{ marginTop: 22 }}>
         <TitreSection action={<button style={{ border: "none", background: "none", padding: 0, cursor: "pointer", fontSize: 12.5, fontWeight: 700, color: C.blush }}>Voir tout</button>}>Catégories populaires</TitreSection>
         <div className="mt-row" style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 4 }}>
           {programmes.map((p) => (
@@ -501,9 +516,9 @@ function VueAccueil({ programmes }) {
             </div>
           ))}
         </div>
-      </div>
+      </div>}
 
-      <div style={{ marginTop: 22 }}>
+      {PARAMS.sec_reprendre === "oui" && <div style={{ marginTop: 22 }}>
         <TitreSection action={<button style={{ border: "none", background: "none", padding: 0, cursor: "pointer", fontSize: 12.5, fontWeight: 700, color: C.blush }}>Voir tout</button>}>Reprendre la lecture</TitreSection>
         <Carte style={{ padding: 12, display: "flex", gap: 12 }}>
           <div style={{ width: 84, height: 84, borderRadius: 14, flexShrink: 0, background: "linear-gradient(150deg,#F2CFE0,#E8A9C6)", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30 }}>
@@ -523,9 +538,9 @@ function VueAccueil({ programmes }) {
             </div>
           </div>
         </Carte>
-      </div>
+      </div>}
 
-      <div style={{ marginTop: 22 }}>
+      {PARAMS.sec_dernieres === "oui" && <div style={{ marginTop: 22 }}>
         <TitreSection action={<button style={{ border: "none", background: "none", padding: 0, cursor: "pointer", fontSize: 12.5, fontWeight: 700, color: C.blush }}>Voir tout</button>}>Dernières formations</TitreSection>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           {FORMATIONS.map((f, i) => (
@@ -539,7 +554,7 @@ function VueAccueil({ programmes }) {
             </div>
           ))}
         </div>
-      </div>
+      </div>}
     </>
   );
 }
@@ -684,7 +699,9 @@ function VueBientot({ titre, texte, emoji }) {
 
 /* ==================== BOUTIK PIBLIK POUKONT LI (/boutique) ==================== */
 function PageBoutique() {
-  useEffect(() => { enregistrerClic("boutique"); }, []);
+  const [pret, setPret] = useState(false);
+  useEffect(() => { enregistrerClic("boutique"); chargerParams().then(() => setPret(true)); }, []);
+  if (!pret) return null;
   return (
     <div style={{ minHeight: "100vh", background: `linear-gradient(180deg, ${C.bg} 0%, ${C.bg2} 100%)`, fontFamily: "'Inter', sans-serif", color: C.ink }}>
       <style>{`
@@ -698,7 +715,7 @@ function PageBoutique() {
       <div className="mt-wrap" style={{ padding: "18px 20px 110px" }}>
         <div style={{ textAlign: "center", lineHeight: 1, marginBottom: 18 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "'Cormorant Garamond',serif", fontSize: 19, fontWeight: 700, color: C.ink, letterSpacing: ".5px" }}>
-            <span>👑</span> MISS THANI
+            <span>👑</span> {PARAMS.nom}
           </div>
           <div style={{ fontFamily: "'Dancing Script',cursive", fontSize: 20, fontWeight: 700, color: C.blush, marginTop: -2 }}>Boutique</div>
         </div>
@@ -727,6 +744,7 @@ export default function App() {
   if (chemin === "/carrieres") return <Carrieres />;
   if (chemin === "/memoire") return <Memoire />;
   if (chemin === "/admin") return <Admin />;
+  if (chemin === "/parametres") return <Parametres />;
 
   return <AppPrincipale />;
 }
@@ -739,6 +757,7 @@ function AppPrincipale() {
 
   useEffect(() => {
     (async () => {
+      await chargerParams();
       const { data: pr } = await supabase.from("programmes").select("*").eq("actif", true).order("ordre");
       const { data: se } = await supabase.from("sessions").select("*").eq("statut", "ouverte").order("date_debut");
       setProgrammes(pr || []);
@@ -768,9 +787,9 @@ function AppPrincipale() {
           <button style={{ width: 38, height: 38, borderRadius: "50%", border: "none", background: "rgba(229,36,126,.10)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: C.magenta, fontSize: 16 }}>☰</button>
           <div style={{ textAlign: "center", lineHeight: 1 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "'Cormorant Garamond',serif", fontSize: 19, fontWeight: 700, color: C.ink, letterSpacing: ".5px" }}>
-              <span>👑</span> MISS THANI
+              <span>👑</span> {PARAMS.nom}
             </div>
-            <div style={{ fontFamily: "'Dancing Script',cursive", fontSize: 20, fontWeight: 700, color: C.blush, marginTop: -2 }}>Online Club</div>
+            <div style={{ fontFamily: "'Dancing Script',cursive", fontSize: 20, fontWeight: 700, color: C.blush, marginTop: -2 }}>{PARAMS.sous_titre}</div>
           </div>
           <button style={{ width: 38, height: 38, borderRadius: "50%", border: "none", background: "rgba(229,36,126,.10)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative", color: C.magenta, fontSize: 15 }}>
             🔔<span style={{ position: "absolute", top: 8, right: 9, width: 6, height: 6, borderRadius: 999, background: C.blush }} />
@@ -781,7 +800,7 @@ function AppPrincipale() {
           <Carte><p style={{ margin: 0, fontSize: 13, color: C.inkSoft, textAlign: "center" }}>Chargement…</p></Carte>
         ) : (
           <>
-            {tab === "accueil" && (<><BlocCredits /><div style={{ marginTop: 16 }}><VueAccueil programmes={programmes} /></div></>)}
+            {tab === "accueil" && (<>{PARAMS.credits_actif === "oui" && <BlocCredits />}<div style={{ marginTop: PARAMS.credits_actif === "oui" ? 16 : 0 }}><VueAccueil programmes={programmes} /></div></>)}
             {tab === "inscription" && <VueInscription programmes={programmes} sessions={sessions} />}
             {tab === "formation" && <VueFormation programmes={programmes} />}
             {tab === "boutique" && <Boutique />}
@@ -800,9 +819,7 @@ function AppPrincipale() {
           </>
         )}
 
-        <p style={{ textAlign: "center", fontSize: 10.5, color: C.inkFaint, marginTop: 22 }}>
-          Miss Thani Make-up &amp; Lace Club · Pétion-Ville
-        </p>
+        <p style={{ textAlign: "center", fontSize: 10.5, color: C.inkFaint, marginTop: 22 }}>{PARAMS.pied}</p>
       </div>
 
       {/* Bar navigasyon fikse */}
