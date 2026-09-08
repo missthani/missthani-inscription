@@ -20,7 +20,11 @@ const C = {
   line: "rgba(142,44,154,.14)",
 };
 
-const PAIEMENT = { moncash: "509 4643 3016", natcash: "509 4643 3016" };
+const PAIEMENT = { moncash: "509 4643 3016", natcash: "509 4643 3016", whatsapp: "50946433016" };
+/* Li nimewo yo nan tab parametres si li la */
+supabase.from("parametres").select("cle, valeur").in("cle", ["moncash", "natcash", "whatsapp"]).then(({ data }) => {
+  (data || []).forEach((x) => { if (x.valeur) PAIEMENT[x.cle] = x.valeur; });
+});
 
 const gdes = (n) => Number(n || 0).toLocaleString("fr-FR") + " gdes";
 
@@ -211,7 +215,7 @@ export default function Boutique() {
           {busy ? "Envoi en cours…" : "📷 Envoyer la preuve de paiement"}
           <input type="file" accept="image/*" style={{ display: "none" }} disabled={busy} onChange={(e) => envoyerPreuve(e.target.files && e.target.files[0], "moncash")} />
         </label>
-        <a href={`https://wa.me/50946433016?text=${encodeURIComponent(`Bonjou, mwen se ${f.nom}. Mwen fè yon kòmand nan boutik la pou ${gdes(total)}.`)}`} target="_blank" rel="noopener noreferrer" style={{ ...btnGhost, width: "100%", textDecoration: "none", marginTop: 8 }}>
+        <a href={`https://wa.me/${PAIEMENT.whatsapp}?text=${encodeURIComponent(`Bonjou, mwen se ${f.nom}. Mwen fè yon kòmand nan boutik la pou ${gdes(total)}.`)}`} target="_blank" rel="noopener noreferrer" style={{ ...btnGhost, width: "100%", textDecoration: "none", marginTop: 8 }}>
           Écrire sur WhatsApp
         </a>
       </Carte>
