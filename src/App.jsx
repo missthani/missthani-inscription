@@ -6,6 +6,7 @@ import EspaceEtudiante from "./EspaceEtudiante";
 import Professeur from "./Professeur";
 import Secretariat from "./Secretariat";
 import Agent from "./Agent";
+import Ambassadrice from "./Ambassadrice";
 
 /* ============================================================
    MISS THANI ONLINE CLUB
@@ -245,10 +246,17 @@ function BlocInscription({ programmes, sessions }) {
       if (e1) throw e1;
       idsRef.current.profil = profil.id;
 
+      /* Ki kalite patnè ki voye moun sa a? */
+      let source = "direct";
+      const ref = refAgent();
+      if (ref) {
+        const { data: pt } = await supabase.from("profils").select("role").eq("etiquette", ref).maybeSingle();
+        source = (pt && pt.role) || "agent";
+      }
       const lignes = f.programmes.map((pid) => ({
         profil_id: profil.id, programme_id: pid,
         session_id: sessionDe(pid) ? sessionDe(pid).id : null,
-        etape: "nouveau", source: refAgent() ? "agent" : "direct", etiquette: refAgent() || null,
+        etape: "nouveau", source, etiquette: ref || null,
       }));
       const { data: prospects, error: e2 } = await supabase.from("prospects").insert(lignes).select();
       if (e2) throw e2;
@@ -690,6 +698,7 @@ export default function App() {
   if (chemin === "/professeur") return <Professeur />;
   if (chemin === "/secretariat") return <Secretariat />;
   if (chemin === "/agent") return <Agent />;
+  if (chemin === "/ambassadrice") return <Ambassadrice />;
 
   return <AppPrincipale />;
 }
