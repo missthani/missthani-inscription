@@ -11,6 +11,7 @@ import Affiliation from "./Affiliation";
 import Comptabilite from "./Comptabilite";
 import Carrieres from "./Carrieres";
 import Memoire from "./Memoire";
+import Admin from "./Admin";
 
 /* ============================================================
    MISS THANI ONLINE CLUB
@@ -303,8 +304,13 @@ function BlocInscription({ programmes, sessions }) {
       if (e4) throw e4;
       setPreuve(file.name);
       setPhase("recu");
-      /* Pwovizwa: n ap fè kòm si admin nan valide. */
-      setTimeout(() => { setPhase("regles"); setRegleIdx(0); }, 2600);
+      /* Tann validasyon admin nan (tcheke chak 8 segond) */
+      const pid = paiement.id;
+      const iv = setInterval(async () => {
+        const { data } = await supabase.from("paiements").select("statut").eq("id", pid).maybeSingle();
+        if (data && data.statut === "valide") { clearInterval(iv); setPhase("regles"); setRegleIdx(0); }
+        if (data && data.statut === "rejete") { clearInterval(iv); setErreur("Votre preuve n'a pas pu être validée. Contactez-nous sur WhatsApp."); setPhase("paiement"); }
+      }, 8000);
     } catch (err) {
       setErreur("L'envoi de la photo a échoué. Réessayez avec une image plus légère.");
     }
@@ -720,6 +726,7 @@ export default function App() {
   if (chemin === "/comptabilite") return <Comptabilite />;
   if (chemin === "/carrieres") return <Carrieres />;
   if (chemin === "/memoire") return <Memoire />;
+  if (chemin === "/admin") return <Admin />;
 
   return <AppPrincipale />;
 }
