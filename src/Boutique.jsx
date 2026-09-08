@@ -24,6 +24,15 @@ const PAIEMENT = { moncash: "509 4643 3016", natcash: "509 4643 3016" };
 
 const gdes = (n) => Number(n || 0).toLocaleString("fr-FR") + " gdes";
 
+function refPartenaire() {
+  try {
+    const u = new URLSearchParams(window.location.search || "");
+    const r = (u.get("ref") || u.get("a") || "").trim();
+    if (r) { localStorage.setItem("mt_ref", r); return r; }
+    return localStorage.getItem("mt_ref") || "";
+  } catch (e) { return ""; }
+}
+
 function telOk(v) {
   let d = String(v || "").replace(/\D/g, "");
   if (d.startsWith("00")) d = d.slice(2);
@@ -103,6 +112,8 @@ export default function Boutique() {
         total,
         mode_livraison: f.mode,
         statut: "a_preparer",
+        etiquette: refPartenaire() || null,
+        source: refPartenaire() ? "partenaire" : "direct",
       }).select().single();
       if (e1) throw e1;
       idsRef.current.commande = cmd.id;
