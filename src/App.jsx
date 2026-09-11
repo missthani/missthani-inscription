@@ -702,27 +702,34 @@ function PageBoutique() {
   const [pret, setPret] = useState(false);
   useEffect(() => { enregistrerClic("boutique"); chargerParams().then(() => setPret(true)); }, []);
   if (!pret) return null;
+  const nav = [["Accueil", "/"], ["Formations", "/#formation"], ["Boutique", "/boutique"], ["Mon espace", "/etudiante"]];
   return (
-    <div style={{ minHeight: "100vh", background: `linear-gradient(180deg, ${C.bg} 0%, ${C.bg2} 100%)`, fontFamily: "'Inter', sans-serif", color: C.ink }}>
+    <div style={{ minHeight: "100vh", background: "#FFFFFF", fontFamily: "'Inter', sans-serif", color: C.ink }}>
       <style>{`
         *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
         body{margin:0}
         .mt-row::-webkit-scrollbar{display:none}
         .mt-row{scrollbar-width:none}
         input::placeholder{color:rgba(58,14,51,.32)}
-        @media (min-width:640px){ .mt-wrap{max-width:520px;margin:0 auto} }
       `}</style>
-      <div className="mt-wrap" style={{ padding: "18px 20px 110px" }}>
-        <div style={{ textAlign: "center", lineHeight: 1, marginBottom: 18 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "'Cormorant Garamond',serif", fontSize: 19, fontWeight: 700, color: C.ink, letterSpacing: ".5px" }}>
-            <span>👑</span> {PARAMS.nom}
-          </div>
-          <div style={{ fontFamily: "'Dancing Script',cursive", fontSize: 20, fontWeight: 700, color: C.blush, marginTop: -2 }}>Boutique</div>
+      {/* Antèt boutik la */}
+      <header style={{ borderBottom: `1px solid ${C.line}`, background: "#fff", position: "sticky", top: 0, zIndex: 30 }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
+          <a href="/" style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none" }}>
+            <span style={{ fontSize: 26 }}>👑</span>
+            <span style={{ lineHeight: 1.05 }}>
+              <span style={{ display: "block", fontFamily: "'Cormorant Garamond',serif", fontSize: 19, fontWeight: 700, color: C.ink, letterSpacing: ".5px" }}>{PARAMS.nom}</span>
+              <span style={{ display: "block", fontSize: 9, fontWeight: 800, letterSpacing: "2px", color: C.blush }}>MAKE-UP & LACE CLUB</span>
+            </span>
+          </a>
+          <nav className="mt-row" style={{ display: "flex", gap: 18, overflowX: "auto" }}>
+            {nav.map(([l, h]) => <a key={l} href={h} style={{ fontSize: 13.5, fontWeight: l === "Boutique" ? 800 : 600, color: l === "Boutique" ? C.blush : C.ink, textDecoration: "none", borderBottom: l === "Boutique" ? `2px solid ${C.blush}` : "2px solid transparent", paddingBottom: 3, whiteSpace: "nowrap" }}>{l}</a>)}
+          </nav>
         </div>
+      </header>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "20px 20px 60px" }}>
         <Boutique />
-        <p style={{ textAlign: "center", fontSize: 10.5, color: C.inkFaint, marginTop: 22 }}>
-          Miss Thani Make-up &amp; Lace Club · Pétion-Ville · <a href="/" style={{ color: C.magenta, fontWeight: 700 }}>Retour à l'app</a>
-        </p>
+        <p style={{ textAlign: "center", fontSize: 11, color: C.inkFaint, marginTop: 26 }}>{PARAMS.pied}</p>
       </div>
     </div>
   );
