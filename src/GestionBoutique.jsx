@@ -509,7 +509,22 @@ function Produits() {
   const [edit, setEdit] = useState("");
   const [draft, setDraft] = useState({});
   const [nouveau, setNouveau] = useState(false);
-  const [nv, setNv] = useState({ nom: "", categorie: "", prix_public: "", prix_eleve: "", stock: "", emoji: "📦", description: "" });
+  const [nv, setNv] = useState({ nom: "", categorie: "", prix_public: "", prix_eleve: "", prix_barre: "", stock: "", emoji: "📦", description: "", marque: "Miss Thani", nouveau: false });
+  const [photo, setPhoto] = useState(null);
+  const monterPhoto = async (file, produitId) => {
+    if (!file) return null;
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const chemin = `${produitId || Date.now()}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("produits").upload(chemin, file, { upsert: true });
+    if (error) return null;
+    return supabase.storage.from("produits").getPublicUrl(chemin).data.publicUrl;
+  };
+  const changerPhoto = async (p, file) => {
+    const url = await monterPhoto(file, p.id);
+    if (!url) return;
+    setRows((r) => r.map((x) => (x.id === p.id ? { ...x, image_url: url } : x)));
+    await supabase.from("produits").update({ image_url: url }).eq("id", p.id);
+  };
 
   const charger = async () => {
     const { data } = await supabase.from("produits").select("*").order("ordre");
@@ -542,11 +557,15 @@ function Produits() {
   };
   const ajouter = async () => {
     if (!nv.nom.trim()) return;
-    const row = { nom: nv.nom.trim(), categorie: nv.categorie.trim() || null, description: nv.description.trim() || null, prix_public: Number(nv.prix_public) || 0, prix_eleve: nv.prix_eleve === "" ? null : Number(nv.prix_eleve), stock: Number(nv.stock) || 0, emoji: nv.emoji || "📦", visible: true, ordre: (rows || []).length + 1 };
+    const row = { nom: nv.nom.trim(), categorie: nv.categorie.trim() || null, description: nv.description.trim() || null, prix_public: Number(nv.prix_public) || 0, prix_eleve: nv.prix_eleve === "" ? null : Number(nv.prix_eleve), prix_barre: nv.prix_barre === "" ? null : Number(nv.prix_barre), stock: Number(nv.stock) || 0, emoji: nv.emoji || "📦", marque: nv.marque || "Miss Thani", nouveau: !!nv.nouveau, visible: true, ordre: (rows || []).length + 1 };
     const { data } = await supabase.from("produits").insert(row).select().single();
-    if (data) setRows((r) => [...(r || []), data]);
-    setNouveau(false);
-    setNv({ nom: "", categorie: "", prix_public: "", prix_eleve: "", stock: "", emoji: "📦", description: "" });
+    if (data) {
+      let fin = data;
+      if (photo) { const url = await monterPhoto(photo, data.id); if (url) { await supabase.from("produits").update({ image_url: url }).eq("id", data.id); fin = { ...data, image_url: url }; } }
+      setRows((r) => [...(r || []), fin]);
+    }
+    setNouveau(false); setPhoto(null);
+    setNv({ nom: "", categorie: "", prix_public: "", prix_eleve: "", prix_barre: "", stock: "", emoji: "📦", description: "", marque: "Miss Thani", nouveau: false });
   };
 
   if (rows === null) return <p style={{ color: C.inkSoft, fontSize: 13 }}>Chargement…</p>;
@@ -591,7 +610,11 @@ function Produits() {
             <input style={input} inputMode="numeric" placeholder="Prix public" value={nv.prix_public} onChange={(e) => setNv({ ...nv, prix_public: e.target.value })} />
             <input style={input} inputMode="numeric" placeholder="Prix élève (optionnel)" value={nv.prix_eleve} onChange={(e) => setNv({ ...nv, prix_eleve: e.target.value })} />
             <input style={input} inputMode="numeric" placeholder="Stock" value={nv.stock} onChange={(e) => setNv({ ...nv, stock: e.target.value })} />
+            <input style={input} inputMode="numeric" placeholder="Ancien prix (barré, optionnel)" value={nv.prix_barre} onChange={(e) => setNv({ ...nv, prix_barre: e.target.value })} />
+            <input style={input} placeholder="Marque" value={nv.marque} onChange={(e) => setNv({ ...nv, marque: e.target.value })} />
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: C.ink }}><input type="checkbox" checked={nv.nouveau} onChange={(e) => setNv({ ...nv, nouveau: e.target.checked })} /> Nouveauté</label>
             <div style={{ gridColumn: "1 / -1" }}><input style={input} placeholder="Description courte" value={nv.description} onChange={(e) => setNv({ ...nv, description: e.target.value })} /></div>
+            <div style={{ gridColumn: "1 / -1" }}><label style={{ fontSize: 11, fontWeight: 700, color: C.inkSoft }}>Photo du produit</label><input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files && e.target.files[0])} style={{ fontSize: 12, display: "block", marginTop: 4 }} /></div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={ajouter} style={{ ...btnPrim, flex: 1, justifyContent: "center" }}>Enregistrer</button>
@@ -606,7 +629,11 @@ function Produits() {
         return (
           <Card key={p.id} style={{ padding: 13, marginBottom: 10, opacity: p.visible ? 1 : 0.6 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-              <span style={{ width: 42, height: 42, borderRadius: 11, background: "rgba(229,36,126,.10)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{p.emoji}</span>
+              <label style={{ width: 46, height: 46, borderRadius: 11, background: p.image_url ? `url(${p.image_url}) center/cover` : "rgba(229,36,126,.10)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0, cursor: "pointer", position: "relative" }} title="Changer la photo">
+                {!p.image_url && p.emoji}
+                <span style={{ position: "absolute", bottom: -4, right: -4, width: 18, height: 18, borderRadius: "50%", background: C.magenta, color: "#fff", fontSize: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>📷</span>
+                <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => changerPhoto(p, e.target.files && e.target.files[0])} />
+              </label>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                   <span style={{ fontSize: 13.5, fontWeight: 800, color: C.ink }}>{p.nom}</span>
