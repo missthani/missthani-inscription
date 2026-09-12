@@ -29,28 +29,19 @@ const TINTS = ["linear-gradient(150deg,#F7DCEB,#E8A9C6)", "linear-gradient(150de
 
 /* Paj akèy la afiche menm jan sou telefòn ak sou òdinatè:
    nou di navigatè a gade paj la kòm yon ekran 1160 px, epi li zoume l. */
-const LARGEUR_SITE = 1160;
-const LARGEUR_TEL = 880;   /* pi piti = tout bagay pi gwo sou telefòn */
-function estTelephone() { try { return window.innerWidth < 760; } catch (e) { return false; } }
-function useVueOrdi() {
-  useEffect(() => {
-    const m = document.querySelector('meta[name="viewport"]');
-    const avant = m ? m.getAttribute("content") : null;
-    const l = estTelephone() ? LARGEUR_TEL : LARGEUR_SITE;
-    if (m) m.setAttribute("content", `width=${l}`);
-    return () => { if (m && avant) m.setAttribute("content", avant); };
-  }, []);
+function useLarge(bp = 900) {
+  const [w, setW] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
+  useEffect(() => { const f = () => setW(window.innerWidth); window.addEventListener("resize", f); return () => window.removeEventListener("resize", f); }, []);
+  return w >= bp;
 }
-function useLarge() { return true; }
 
 const T = typeof window !== "undefined" && window.innerWidth < 760 ? 1.18 : 1;   /* miltiplikatè tèks */
 const px = (n) => Math.round(n * T);
 const btn = (bg, col) => ({ display: "inline-flex", alignItems: "center", gap: 8, padding: `${px(14)}px ${px(26)}px`, borderRadius: 999, background: bg, color: col, fontSize: px(14), fontWeight: 700, textDecoration: "none", border: "none", cursor: "pointer", fontFamily: "'Inter',sans-serif" });
 
 export default function Accueil() {
-  useVueOrdi();
-  const large = true;
-  const mid = true;
+  const large = useLarge();
+  const mid = useLarge(640);
   const [p, setP] = useState(D);
   const [programmes, setProgrammes] = useState([]);
   const [produits, setProduits] = useState([]);
@@ -99,28 +90,56 @@ export default function Accueil() {
               <span style={{ display: "block", fontSize: 8.5, fontWeight: 800, letterSpacing: "1.8px", color: C.blush }}>{p.sous_titre}</span>
             </span>
           </a>
-          {large ? (
-            <>
-              <nav style={{ display: "flex", gap: 24 }}>
-                {NAV.map(([l, h], i) => <a key={l} href={h} style={{ fontSize: px(14.5), fontWeight: i === 0 ? 700 : 500, color: i === 0 ? C.blush : C.ink, textDecoration: "none", borderBottom: i === 0 ? `2px solid ${C.blush}` : "2px solid transparent", paddingBottom: 4 }}>{l}</a>)}
-              </nav>
-              <div style={{ display: "flex", gap: 10 }}>
-                <a href="/etudiante" title="Mon espace" style={{ width: 38, height: 38, borderRadius: "50%", background: C.rose, display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontSize: 15 }}>👤</a>
-                <a href="/boutique" title="Boutique" style={{ width: 38, height: 38, borderRadius: "50%", background: C.rose, display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontSize: 15 }}>🛍️</a>
-              </div>
-            </>
-          ) : <button onClick={() => setMenu((v) => !v)} style={{ width: 38, height: 38, borderRadius: 10, background: C.rose, border: "none", fontSize: 16, cursor: "pointer" }}>☰</button>}
+          {large && (
+            <nav style={{ display: "flex", gap: 24 }}>
+              {NAV.map(([l, h], i) => <a key={l} href={h} style={{ fontSize: px(14.5), fontWeight: i === 0 ? 700 : 500, color: i === 0 ? C.blush : C.ink, textDecoration: "none", borderBottom: i === 0 ? `2px solid ${C.blush}` : "2px solid transparent", paddingBottom: 4 }}>{l}</a>)}
+            </nav>
+          )}
+          <button onClick={() => setMenu(true)} aria-label="Options" style={{ width: px(42), height: px(42), borderRadius: 12, background: C.rose, border: "none", fontSize: px(17), cursor: "pointer", color: C.blush, flexShrink: 0 }}>☰</button>
         </div>
-        {!large && menu && (
-          <div style={{ borderTop: `1px solid ${C.line}`, padding: "10px 18px 16px", background: "#fff" }}>
-            {NAV.map(([l, h]) => <a key={l} href={h} onClick={() => setMenu(false)} style={{ display: "block", padding: "10px 0", fontSize: 14, fontWeight: 600, textDecoration: "none", borderBottom: `1px solid ${C.line}` }}>{l}</a>)}
-            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-              <a href="/app" style={{ ...btn(C.blush, "#fff"), flex: 1, justifyContent: "center", padding: "11px" }}>S'inscrire</a>
-              <a href="/etudiante" style={{ ...btn(C.rose, C.blush), flex: 1, justifyContent: "center", padding: "11px" }}>Mon espace</a>
+      </header>
+
+      {/* ================= PANÈL OPTIONS ================= */}
+      {menu && (
+        <div onClick={() => setMenu(false)} style={{ position: "fixed", inset: 0, background: "rgba(43,31,46,.5)", zIndex: 90, display: "flex", justifyContent: "flex-end" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: large ? 380 : "88%", maxWidth: 400, height: "100%", background: "#fff", overflowY: "auto", padding: "18px 18px 40px", boxShadow: "-10px 0 30px rgba(43,31,46,.18)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+              <div style={{ lineHeight: 1.05 }}>
+                <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: px(18), fontWeight: 700 }}>👑 {p.nom}</div>
+                <div style={{ fontSize: px(9), fontWeight: 800, letterSpacing: "1.8px", color: C.blush, marginTop: 3 }}>{p.sous_titre}</div>
+              </div>
+              <button onClick={() => setMenu(false)} style={{ width: px(36), height: px(36), borderRadius: 10, border: "none", background: C.rose, fontSize: px(15), cursor: "pointer", color: C.blush }}>✕</button>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 18 }}>
+              <a href="/inscription" style={{ ...btn(C.blush, "#fff"), justifyContent: "center" }}>📝 S'inscrire</a>
+              <a href="/boutique" style={{ ...btn(C.rose, C.blush), justifyContent: "center" }}>🛍️ Boutique</a>
+            </div>
+
+            <div style={{ fontSize: px(10.5), fontWeight: 800, letterSpacing: "1.5px", color: C.inkFaint, marginBottom: 8 }}>NAVIGUER</div>
+            {[["🏠", "Accueil", "/"], ["🎓", "Nos formations", "#formations"], ["✨", "Nos services", "#services"], ["💬", "Parler à Carla", "/carla"], ["👤", "Mon espace étudiante", "/etudiante"], ["📞", "Nous contacter", "#contact"]].map(([e, l, h]) => (
+              <a key={l} href={h} onClick={() => setMenu(false)} style={{ display: "flex", alignItems: "center", gap: 12, padding: `${px(12)}px 4px`, textDecoration: "none", borderBottom: `1px solid ${C.line}` }}>
+                <span style={{ width: px(34), height: px(34), borderRadius: 10, background: C.rose, display: "flex", alignItems: "center", justifyContent: "center", fontSize: px(16), flexShrink: 0 }}>{e}</span>
+                <span style={{ fontSize: px(14.5), fontWeight: 600, color: C.ink }}>{l}</span>
+                <span style={{ marginLeft: "auto", color: C.inkFaint }}>›</span>
+              </a>
+            ))}
+
+            <div style={{ fontSize: px(10.5), fontWeight: 800, letterSpacing: "1.5px", color: C.inkFaint, margin: "20px 0 8px" }}>ESPACE ÉQUIPE</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+              {[["Professeur", "/professeur"], ["Secrétariat", "/secretariat"], ["Boutique", "/gestion-boutique"], ["Agent", "/agent"], ["Affiliation", "/affiliation"], ["Ambassadrice", "/ambassadrice"], ["Admin", "/admin"]].map(([l, h]) => (
+                <a key={l} href={h} style={{ padding: `${px(7)}px ${px(13)}px`, borderRadius: 999, border: `1.3px solid ${C.line}`, fontSize: px(12), fontWeight: 700, color: C.inkSoft, textDecoration: "none" }}>{l}</a>
+              ))}
+            </div>
+
+            <div style={{ marginTop: 22, padding: `${px(14)}px`, borderRadius: 14, background: C.rose }}>
+              <div style={{ fontSize: px(12.5), fontWeight: 800, color: C.ink, marginBottom: 8 }}>Nous joindre</div>
+              {[["📞", p.telephone], ["✉️", p.email], ["📍", p.adresse]].map(([e, v]) => <div key={v} style={{ display: "flex", gap: 8, fontSize: px(12.5), color: C.inkSoft, padding: "3px 0" }}><span>{e}</span>{v}</div>)}
+              <a href={`https://wa.me/${(p.whatsapp || "50946433016").replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" style={{ ...btn("#25D366", "#fff"), width: "100%", justifyContent: "center", marginTop: 10 }}>💬 WhatsApp</a>
             </div>
           </div>
-        )}
-      </header>
+        </div>
+      )}
 
       {/* ================= BANYÈ ================= */}
       {p.hero_image && p.hero_mode === "image_seule" ? (
