@@ -703,56 +703,26 @@ function VueBientot({ titre, texte, emoji }) {
 const LIENS = [
   { href: "/", label: "Accueil", icon: "🏠" },
   { href: "/inscription", label: "Inscription", icon: "📝" },
+  { href: "/app", label: "Formation", icon: "🎓" },
   { href: "/boutique", label: "Boutique", icon: "🛍️" },
+  { href: "/carla", label: "Carla", icon: "💬" },
+  { href: "/etudiante", label: "Profil", icon: "👤" },
 ];
-const OPTIONS = [
-  { t: "NAVIGUER", items: [["🎓", "Formation", "/app"], ["💬", "Parler à Carla", "/carla"], ["👤", "Mon espace étudiante", "/etudiante"]] },
-  { t: "ESPACE ÉQUIPE", items: [["👩‍🏫", "Professeur", "/professeur"], ["🗂️", "Secrétariat", "/secretariat"], ["📦", "Gestion boutique", "/gestion-boutique"], ["📱", "Agent", "/agent"], ["🔗", "Affiliation", "/affiliation"], ["🎬", "Ambassadrice", "/ambassadrice"], ["⚙️", "Administration", "/admin"]] },
-];
-
-function BarreNav({ actif }) {
-  const [ouvert, setOuvert] = useState(false);
-  const item = (href, icon, label, on, onClick) => (
-    <a key={label} href={href} onClick={onClick} style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flex: 1, minWidth: 0, padding: "2px 0", opacity: on ? 1 : 0.55 }}>
-      <span style={{ fontSize: 21, filter: on ? "none" : "grayscale(1)" }}>{icon}</span>
-      <span style={{ fontSize: 11, fontWeight: on ? 800 : 600, color: on ? C.blush : C.inkFaint, whiteSpace: "nowrap" }}>{label}</span>
-    </a>
-  );
+function BarreNav({ actif, grand }) {
+  /* `grand` = paj ki afiche an vi òdinatè sou telefòn (zoume), donk bouton yo pi gwo */
+  const k = grand && typeof window !== "undefined" && window.screen && window.screen.width < 760 ? 2.4 : 1;
   return (
-    <>
-      <nav style={{ position: "fixed", left: 0, right: 0, bottom: 0, background: "#fff", borderTop: `1px solid ${C.line}`, display: "flex", justifyContent: "space-around", padding: "11px 2px 20px", boxShadow: "0 -6px 18px rgba(142,44,154,.08)", zIndex: 60 }}>
-        {LIENS.map((t) => item(t.href, t.icon, t.label, actif === t.href))}
-        <button onClick={() => setOuvert(true)} style={{ border: "none", background: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flex: 1, minWidth: 0, padding: "2px 0", opacity: 0.85 }}>
-          <span style={{ fontSize: 21, color: C.magenta }}>☰</span>
-          <span style={{ fontSize: 11, fontWeight: 600, color: C.inkFaint }}>Options</span>
-        </button>
-      </nav>
-
-      {ouvert && (
-        <div onClick={() => setOuvert(false)} style={{ position: "fixed", inset: 0, background: "rgba(43,31,46,.5)", zIndex: 80, display: "flex", alignItems: "flex-end" }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxHeight: "82%", overflowY: "auto", background: "#fff", borderRadius: "20px 20px 0 0", padding: "14px 18px 32px" }}>
-            <div style={{ width: 42, height: 4, borderRadius: 999, background: C.line, margin: "0 auto 16px" }} />
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 18 }}>
-              <a href="/inscription" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "13px", borderRadius: 999, background: `linear-gradient(135deg, ${C.blush}, ${C.magenta})`, color: "#fff", fontSize: 14, fontWeight: 800, textDecoration: "none" }}>📝 S'inscrire</a>
-              <a href="/carla" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "13px", borderRadius: 999, background: "rgba(229,36,126,.10)", color: C.blush, fontSize: 14, fontWeight: 800, textDecoration: "none" }}>💬 Carla</a>
-            </div>
-            {OPTIONS.map((g) => (
-              <div key={g.t} style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "1.5px", color: C.inkFaint, marginBottom: 6 }}>{g.t}</div>
-                {g.items.map(([e, l, h]) => (
-                  <a key={l} href={h} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 4px", textDecoration: "none", borderBottom: `1px solid ${C.line}` }}>
-                    <span style={{ width: 36, height: 36, borderRadius: 11, background: "rgba(229,36,126,.10)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flexShrink: 0 }}>{e}</span>
-                    <span style={{ fontSize: 14.5, fontWeight: 600, color: C.ink }}>{l}</span>
-                    <span style={{ marginLeft: "auto", color: C.inkFaint }}>›</span>
-                  </a>
-                ))}
-              </div>
-            ))}
-            <a href={`https://wa.me/${(PARAMS.whatsapp || "50946433016").replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px", borderRadius: 999, background: "#25D366", color: "#fff", fontSize: 14, fontWeight: 800, textDecoration: "none" }}>💬 Écrire sur WhatsApp</a>
-          </div>
-        </div>
-      )}
-    </>
+    <nav style={{ position: "fixed", left: 0, right: 0, bottom: 0, background: "#fff", borderTop: `1px solid ${C.line}`, display: "flex", justifyContent: "space-around", padding: `${10 * k}px 2px ${18 * k}px`, boxShadow: "0 -6px 18px rgba(142,44,154,.08)", zIndex: 60 }}>
+      {LIENS.map((t) => {
+        const on = actif === t.href;
+        return (
+          <a key={t.href} href={t.href} style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 * k, flex: 1, minWidth: 0, padding: "2px 0", opacity: on ? 1 : 0.5 }}>
+            <span style={{ fontSize: 18 * k, filter: on ? "none" : "grayscale(1)" }}>{t.icon}</span>
+            <span style={{ fontSize: 9.5 * k, fontWeight: on ? 800 : 500, color: on ? C.blush : C.inkFaint, whiteSpace: "nowrap" }}>{t.label}</span>
+          </a>
+        );
+      })}
+    </nav>
   );
 }
 
@@ -800,7 +770,7 @@ export default function App() {
   const chemin = typeof window !== "undefined" ? window.location.pathname.replace(/\/+$/, "") : "";
   if (chemin === "/gestion-boutique") return <GestionBoutique />;
   if (chemin === "/boutique") return <><PageBoutique /><BarreNav actif="/boutique" /></>;
-  if (chemin === "" || chemin === "/") return <><Accueil /><div style={{ height: 84 }} /><BarreNav actif="/" /></>;
+  if (chemin === "" || chemin === "/") return <><Accueil /><div style={{ height: 110 }} /><BarreNav actif="/" grand /></>;
   if (chemin === "/inscription") return <AppPrincipale depart="inscription" />;
   if (chemin === "/carla") return <><Carla /><BarreNav actif="/carla" /></>;
   if (chemin === "/etudiante") return <><EspaceEtudiante /><BarreNav actif="/etudiante" /></>;
