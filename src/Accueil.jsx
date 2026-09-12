@@ -317,8 +317,8 @@ export default function Accueil() {
 
       {/* ================= FÒMASYON ================= */}
       <section id="formations" style={{ ...wrap, padding: TEL ? "44px 0 44px 32px" : "60px 32px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: TEL ? "380px 1fr" : "300px 1fr", gap: TEL ? 30 : 40, alignItems: "center" }}>
-          <div>
+        <div style={{ display: "grid", gridTemplateColumns: TEL ? "380px 1fr" : "300px 1fr", gap: TEL ? 30 : 40, alignItems: "start" }}>
+          <div style={{ paddingTop: TEL ? 10 : 6 }}>
             <div style={{ width: TEL ? 60 : 46, height: 3, background: C.gold, marginBottom: 14 }} />
             <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: TEL ? 56 : 34, fontWeight: 700, margin: 0, lineHeight: 1.05 }}>{p.formations_titre}</h2>
             <p style={{ fontSize: TEL ? 24 : 14.5, color: C.inkSoft, lineHeight: 1.6, margin: "14px 0 0" }}>{p.formations_texte}</p>
