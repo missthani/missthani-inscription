@@ -13,6 +13,7 @@ import Carrieres from "./Carrieres";
 import Memoire from "./Memoire";
 import Admin from "./Admin";
 import Parametres from "./Parametres";
+import Accueil from "./Accueil";
 
 /* ============================================================
    MISS THANI ONLINE CLUB
@@ -741,6 +742,8 @@ export default function App() {
   const chemin = typeof window !== "undefined" ? window.location.pathname.replace(/\/+$/, "") : "";
   if (chemin === "/gestion-boutique") return <GestionBoutique />;
   if (chemin === "/boutique") return <PageBoutique />;
+  if (chemin === "" || chemin === "/") return <Accueil />;
+  if (chemin === "/inscription") return <AppPrincipale depart="inscription" />;
   if (chemin === "/etudiante") return <EspaceEtudiante />;
   if (chemin === "/professeur") return <Professeur />;
   if (chemin === "/secretariat") return <Secretariat />;
@@ -756,8 +759,8 @@ export default function App() {
   return <AppPrincipale />;
 }
 
-function AppPrincipale() {
-  const [tab, setTab] = useState("accueil");
+function AppPrincipale({ depart }) {
+  const [tab, setTab] = useState(depart || "accueil");
   const [programmes, setProgrammes] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [chargement, setChargement] = useState(true);
