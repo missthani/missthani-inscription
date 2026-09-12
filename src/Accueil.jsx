@@ -29,8 +29,11 @@ const TINTS = ["linear-gradient(150deg,#F7DCEB,#E8A9C6)", "linear-gradient(150de
 
 /* ---- Menm afichaj ak òdinatè: paj la mezire 1160 px tout kote ---- */
 const LARGEUR = 1160;
-const T = typeof window !== "undefined" && window.innerWidth < 760 ? 1.15 : 1;   /* telefòn: tèks +15 % */
+const TEL = typeof window !== "undefined" && window.innerWidth < 760;
+const T = TEL ? 1.15 : 1;   /* telefòn: tèks +15 % */
+const H = TEL ? 1.55 : 1;   /* telefòn: antèt ak bouton prensipal yo +55 % */
 const px = (n) => Math.round(n * T * 10) / 10;
+const hx = (n) => Math.round(n * H * 10) / 10;
 function useVueOrdi() {
   useEffect(() => {
     const m = document.querySelector('meta[name="viewport"]');
@@ -65,12 +68,75 @@ function Logo({ p, sombre }) {
   const col = sombre ? "#fff" : C.ink;
   return (
     <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-      <span style={{ width: px(40), height: px(40), borderRadius: 12, background: sombre ? "rgba(255,255,255,.10)" : C.rose, display: "flex", alignItems: "center", justifyContent: "center" }}><Ico d={I.crown} size={px(22)} color={C.gold} /></span>
+      <span style={{ width: hx(40), height: hx(40), borderRadius: 12, background: sombre ? "rgba(255,255,255,.10)" : C.rose, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Ico d={I.crown} size={hx(22)} color={C.gold} /></span>
       <span style={{ lineHeight: 1.05 }}>
-        <span style={{ display: "block", fontFamily: "'Cormorant Garamond',serif", fontSize: px(20), fontWeight: 700, letterSpacing: ".5px", color: col }}>{p.nom}</span>
-        <span style={{ display: "block", fontSize: px(8.5), fontWeight: 800, letterSpacing: "1.8px", color: C.blush }}>{p.sous_titre}</span>
+        <span style={{ display: "block", fontFamily: "'Cormorant Garamond',serif", fontSize: hx(21), fontWeight: 700, letterSpacing: ".5px", color: col, whiteSpace: "nowrap" }}>{p.nom}</span>
+        <span style={{ display: "block", fontSize: hx(8.5), fontWeight: 800, letterSpacing: "1.8px", color: C.blush, whiteSpace: "nowrap" }}>{p.sous_titre}</span>
       </span>
     </a>
+  );
+}
+
+/* ---- Tchat Carla sou paj akèy la ---- */
+function BlocCarla({ p }) {
+  const [reponses, setReponses] = useState([]);
+  const [msgs, setMsgs] = useState([{ a: "carla", t: p.carla_bienvenue || "Bonjour ! Je suis Carla, l'assistante de Miss Thani. Posez-moi vos questions sur les formations, les prix et les inscriptions." }]);
+  const [sugg, setSugg] = useState(["Quelles formations proposez-vous ?", "Combien ça coûte ?", "Quand commence la prochaine session ?", "Je veux m'inscrire"]);
+  const [draft, setDraft] = useState("");
+  const [ecrit, setEcrit] = useState(false);
+  const listRef = React.useRef(null);
+
+  useEffect(() => {
+    supabase.from("carla_reponses").select("*").eq("visible", true).order("ordre").then(({ data }) => { const r = data || []; setReponses(r); if (r.length) setSugg(r.slice(0, 4).map((x) => x.question)); });
+  }, []);
+  useEffect(() => { setMsgs((m) => (m.length === 1 && p.carla_bienvenue ? [{ a: "carla", t: p.carla_bienvenue }] : m)); }, [p.carla_bienvenue]);
+  useEffect(() => { const el = listRef.current; if (el) el.scrollTop = el.scrollHeight; }, [msgs, ecrit]);
+
+  const envoyer = (texte) => {
+    const t = (texte || draft).trim(); if (!t) return;
+    setMsgs((m) => [...m, { a: "moi", t }]); setDraft(""); setEcrit(true);
+    const r = reponses.find((x) => x.question === t);
+    setTimeout(() => {
+      setEcrit(false);
+      setMsgs((m) => [...m, { a: "carla", t: r ? r.reponse : "Merci ! Une personne de l'équipe vous répond très vite. Vous pouvez aussi ouvrir la conversation complète ou nous écrire sur WhatsApp." }]);
+      if (r && r.suite) setSugg(r.suite.split("|").filter(Boolean)); else if (reponses.length) setSugg(reponses.map((x) => x.question).filter((x) => x !== t).slice(0, 4));
+      if (/inscrire/i.test(t)) setMsgs((m) => [...m, { a: "action" }]);
+    }, 650);
+  };
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1.6fr", gap: 28, alignItems: "center" }}>
+      <div>
+        <div style={{ fontSize: px(10.5), fontWeight: 800, letterSpacing: "2.5px", color: C.blush }}>VOTRE ASSISTANTE</div>
+        <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: px(34), fontWeight: 700, margin: "8px 0 0", lineHeight: 1.1 }}>Une question ?</h2>
+        <div style={{ fontFamily: "'Dancing Script',cursive", fontSize: px(30), color: C.blush, marginTop: 2 }}>Carla vous répond</div>
+        <p style={{ fontSize: px(14.5), color: C.inkSoft, lineHeight: 1.7, margin: "12px 0 18px" }}>Formations, prix, dates de session, inscription — posez votre question, Carla répond tout de suite. Pour un cas particulier, l'équipe prend le relais sur WhatsApp.</p>
+        <a href="/carla" style={{ ...btn("#fff", C.blush, `1.5px solid ${C.blush}`), fontSize: hx(14) }}>Ouvrir la conversation <Ico d={I.arrow} size={16} /></a>
+      </div>
+      <div style={{ borderRadius: 20, overflow: "hidden", background: "#fff", border: `1px solid ${C.line}`, boxShadow: "0 14px 36px rgba(142,44,154,.10)" }}>
+        <div style={{ background: `linear-gradient(120deg, ${C.blush}, ${C.magenta})`, padding: "14px 18px", color: "#fff", display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,.95)", color: C.magenta, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 700 }}>C</span>
+          <div style={{ lineHeight: 1.15 }}><div style={{ fontSize: px(15), fontWeight: 800 }}>Carla</div><div style={{ fontSize: px(11), opacity: .92, display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}><span style={{ width: 7, height: 7, borderRadius: 999, background: "#4ADE80" }} />En ligne</div></div>
+        </div>
+        <div ref={listRef} style={{ height: 230, overflowY: "auto", padding: "14px 16px 6px", display: "flex", flexDirection: "column", gap: 9, background: C.rose2 }}>
+          {msgs.map((m, i) => m.a === "action" ? (
+            <div key={i} style={{ display: "flex", gap: 8 }}><a href="/inscription" style={{ ...btn(C.blush, "#fff"), padding: "9px 16px", fontSize: px(12.5) }}>Aller à l'inscription</a></div>
+          ) : (
+            <div key={i} style={{ display: "flex", justifyContent: m.a === "moi" ? "flex-end" : "flex-start" }}>
+              <div style={{ maxWidth: "80%", padding: "10px 13px", borderRadius: 14, borderBottomRightRadius: m.a === "moi" ? 4 : 14, borderBottomLeftRadius: m.a === "moi" ? 14 : 4, background: m.a === "moi" ? `linear-gradient(135deg, ${C.blush}, ${C.magenta})` : "#fff", color: m.a === "moi" ? "#fff" : C.ink, fontSize: px(13), lineHeight: 1.55, border: m.a === "moi" ? "none" : `1px solid ${C.line}` }}>{m.t}</div>
+            </div>
+          ))}
+          {ecrit && <div style={{ fontSize: px(12), color: C.inkFaint, fontStyle: "italic" }}>Carla écrit…</div>}
+        </div>
+        <div style={{ display: "flex", gap: 7, overflowX: "auto", padding: "10px 16px 4px", background: C.rose2 }}>
+          {sugg.map((q) => <button key={q} onClick={() => envoyer(q)} style={{ flexShrink: 0, padding: "8px 13px", borderRadius: 999, border: `1.3px solid ${C.blush}`, background: "#fff", color: C.blush, fontSize: px(12), fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>{q}</button>)}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "10px 16px 14px", background: C.rose2 }}>
+          <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") envoyer(); }} placeholder="Écrivez votre question…" style={{ flex: 1, padding: "11px 14px", borderRadius: 999, border: `1.4px solid ${C.line}`, background: "#fff", color: C.ink, fontSize: px(13.5), fontFamily: "'Inter',sans-serif", outline: "none" }} />
+          <button onClick={() => envoyer()} aria-label="Envoyer" style={{ width: 42, height: 42, borderRadius: "50%", border: "none", background: `linear-gradient(135deg, ${C.blush}, ${C.magenta})`, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Ico d={I.send} size={17} color="#fff" /></button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -115,13 +181,13 @@ export default function Accueil() {
 
       {/* ================= ANTÈT ================= */}
       <header style={{ borderBottom: `1px solid ${C.line}`, background: "#fff", position: "sticky", top: 0, zIndex: 40 }}>
-        <div style={{ ...wrap, display: "flex", alignItems: "center", justifyContent: "space-between", height: px(70), gap: 20 }}>
+        <div style={{ ...wrap, display: "flex", alignItems: "center", justifyContent: "space-between", height: hx(72), gap: 20 }}>
           <Logo p={p} />
-          <div style={{ display: "flex", alignItems: "center", gap: 26 }}>
-            <nav style={{ display: "flex", gap: 26 }}>
-              {NAV.map(([l, h], i) => <a key={l} href={h} style={{ fontSize: px(14.5), fontWeight: i === 0 ? 700 : 500, color: i === 0 ? C.blush : C.ink, textDecoration: "none", borderBottom: i === 0 ? `2px solid ${C.blush}` : "2px solid transparent", paddingBottom: 4 }}>{l}</a>)}
+          <div style={{ display: "flex", alignItems: "center", gap: hx(24) }}>
+            <nav style={{ display: "flex", gap: hx(24) }}>
+              {NAV.map(([l, h], i) => <a key={l} href={h} style={{ fontSize: hx(15), fontWeight: i === 0 ? 800 : 600, color: i === 0 ? C.blush : C.ink, textDecoration: "none", borderBottom: i === 0 ? `2.5px solid ${C.blush}` : "2.5px solid transparent", paddingBottom: 5, whiteSpace: "nowrap" }}>{l}</a>)}
             </nav>
-            <button onClick={() => setMenu(true)} aria-label="Options" style={{ width: px(42), height: px(42), borderRadius: 12, background: C.rose, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><Ico d={I.menu} size={px(20)} /></button>
+            <button onClick={() => setMenu(true)} aria-label="Options" style={{ width: hx(44), height: hx(44), borderRadius: 12, background: C.rose, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Ico d={I.menu} size={hx(22)} /></button>
           </div>
         </div>
       </header>
@@ -166,24 +232,18 @@ export default function Accueil() {
             <h1 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: px(46), fontWeight: 700, lineHeight: 1.06, margin: "10px 0 0" }}>{p.hero_titre}</h1>
             <div style={{ fontFamily: "'Dancing Script',cursive", fontSize: px(40), color: C.blush, lineHeight: 1.1, marginTop: 2 }}>{p.hero_titre_script}</div>
             <p style={{ fontSize: px(14.5), color: C.inkSoft, lineHeight: 1.7, margin: "14px 0 0" }}>{p.hero_texte}</p>
-            <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
-              <a href="#formations" style={btn(C.blush, "#fff")}>{p.hero_bouton} <Ico d={I.arrow} size={16} color="#fff" /></a>
-              <a href="/inscription" style={btn("#fff", C.blush)}>S'inscrire</a>
+            <div style={{ display: "flex", gap: 12, marginTop: 22 }}>
+              <a href="#formations" style={{ ...btn(C.blush, "#fff"), fontSize: hx(15), padding: `${hx(14)}px ${hx(26)}px`, boxShadow: "0 8px 20px rgba(229,36,126,.30)" }}>{p.hero_bouton} <Ico d={I.arrow} size={hx(17)} color="#fff" /></a>
+              <a href="/inscription" style={{ ...btn("#fff", C.blush), fontSize: hx(15), padding: `${hx(14)}px ${hx(26)}px` }}>S'inscrire</a>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ================= 5 PILYE ================= */}
+      {/* ================= BLÒK CARLA ================= */}
       <section style={{ background: C.rose2, borderBottom: `1px solid ${C.line}` }}>
-        <div style={{ ...wrap, display: "flex", padding: "28px 32px" }}>
-          {[[I.cap, "Formations", "Professionnelles & certifiantes", "#formations"], [I.bag, "Boutique", "Produits de beauté & accessoires", "/boutique"], [I.scissors, "Services", "Soins & prestations beauté", "#services"], [I.users, "Communauté", "Un réseau qui vous soutient", "#temoignages"], [I.heart, "Accompagnement", "De l'apprentissage à la réussite", "#temoignages"]].map(([d, t, s, h], i, arr) => (
-            <a key={t} href={h} style={{ flex: 1, textAlign: "center", padding: "6px 14px", textDecoration: "none", borderRight: i < arr.length - 1 ? `1px solid ${C.line}` : "none" }}>
-              <div style={{ width: px(54), height: px(54), borderRadius: "50%", background: C.rose, display: "inline-flex", alignItems: "center", justifyContent: "center" }}><Ico d={d} size={px(24)} /></div>
-              <div style={{ fontSize: px(14.5), fontWeight: 700, marginTop: 10, color: C.ink }}>{t}</div>
-              <div style={{ fontSize: px(11.5), color: C.inkFaint, marginTop: 3, lineHeight: 1.4 }}>{s}</div>
-            </a>
-          ))}
+        <div style={{ ...wrap, padding: "30px 32px" }}>
+          <BlocCarla p={p} />
         </div>
       </section>
 
