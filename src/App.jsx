@@ -14,6 +14,7 @@ import Memoire from "./Memoire";
 import Admin from "./Admin";
 import Parametres from "./Parametres";
 import Accueil from "./Accueil";
+import Carla from "./Carla";
 
 /* ============================================================
    MISS THANI ONLINE CLUB
@@ -698,6 +699,31 @@ function VueBientot({ titre, texte, emoji }) {
   );
 }
 
+/* ==================== BAR NAVIGASYON GLOBAL ==================== */
+const LIENS = [
+  { href: "/", label: "Accueil", icon: "🏠" },
+  { href: "/inscription", label: "Inscription", icon: "📝" },
+  { href: "/app", label: "Formation", icon: "🎓" },
+  { href: "/boutique", label: "Boutique", icon: "🛍️" },
+  { href: "/carla", label: "Carla", icon: "💬" },
+  { href: "/etudiante", label: "Profil", icon: "👤" },
+];
+function BarreNav({ actif }) {
+  return (
+    <nav style={{ position: "fixed", left: 0, right: 0, bottom: 0, background: "#fff", borderTop: `1px solid ${C.line}`, display: "flex", justifyContent: "space-around", padding: "10px 2px 18px", boxShadow: "0 -6px 18px rgba(142,44,154,.08)", zIndex: 60 }}>
+      {LIENS.map((t) => {
+        const on = actif === t.href;
+        return (
+          <a key={t.href} href={t.href} style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, flex: 1, minWidth: 0, padding: "2px 0", opacity: on ? 1 : 0.5 }}>
+            <span style={{ fontSize: 18, filter: on ? "none" : "grayscale(1)" }}>{t.icon}</span>
+            <span style={{ fontSize: 9.5, fontWeight: on ? 800 : 500, color: on ? C.blush : C.inkFaint, whiteSpace: "nowrap" }}>{t.label}</span>
+          </a>
+        );
+      })}
+    </nav>
+  );
+}
+
 /* ==================== BOUTIK PIBLIK POUKONT LI (/boutique) ==================== */
 function PageBoutique() {
   const [pret, setPret] = useState(false);
@@ -741,10 +767,11 @@ export default function App() {
   /* Wout separe yo */
   const chemin = typeof window !== "undefined" ? window.location.pathname.replace(/\/+$/, "") : "";
   if (chemin === "/gestion-boutique") return <GestionBoutique />;
-  if (chemin === "/boutique") return <PageBoutique />;
-  if (chemin === "" || chemin === "/") return <Accueil />;
+  if (chemin === "/boutique") return <><PageBoutique /><BarreNav actif="/boutique" /></>;
+  if (chemin === "" || chemin === "/") return <><Accueil /><div style={{ height: 78 }} /><BarreNav actif="/" /></>;
   if (chemin === "/inscription") return <AppPrincipale depart="inscription" />;
-  if (chemin === "/etudiante") return <EspaceEtudiante />;
+  if (chemin === "/carla") return <><Carla /><BarreNav actif="/carla" /></>;
+  if (chemin === "/etudiante") return <><EspaceEtudiante /><BarreNav actif="/etudiante" /></>;
   if (chemin === "/professeur") return <Professeur />;
   if (chemin === "/secretariat") return <Secretariat />;
   if (chemin === "/agent") return <Agent />;
@@ -837,7 +864,7 @@ function AppPrincipale({ depart }) {
         {TABS.map((t) => {
           const on = tab === t.key;
           return (
-            <button key={t.key} onClick={() => setTab(t.key)} style={{ border: "none", background: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, flex: 1, minWidth: 0, padding: "2px 0", opacity: on ? 1 : 0.45 }}>
+            <button key={t.key} onClick={() => { if (t.key === "carla") { window.location.href = "/carla"; return; } setTab(t.key); }} style={{ border: "none", background: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, flex: 1, minWidth: 0, padding: "2px 0", opacity: on ? 1 : 0.45 }}>
               <span style={{ fontSize: 18, filter: on ? "none" : "grayscale(1)" }}>{t.icon}</span>
               <span style={{ fontSize: 9.5, fontWeight: on ? 800 : 500, color: on ? C.blush : C.inkFaint, whiteSpace: "nowrap" }}>{t.label}</span>
             </button>
