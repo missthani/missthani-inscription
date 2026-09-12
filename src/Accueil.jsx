@@ -117,9 +117,10 @@ export default function Accueil() {
           {large && <a href="#formations" aria-label={p.hero_bouton} style={{ position: "absolute", left: "6%", bottom: "14%", width: "17%", height: "13%", borderRadius: 999 }} />}
         </section>
       ) : (
-        <section style={{ position: "relative", background: p.hero_image ? `linear-gradient(90deg, rgba(255,245,250,.96) 0%, rgba(255,240,247,.80) 46%, rgba(255,240,247,.25) 100%), url(${p.hero_image}) center/cover` : "linear-gradient(100deg,#FDF0F6 0%,#FBE4EE 52%,#F5C9DC 100%)", overflow: "hidden" }}>
-          <div style={{ ...wrap, display: "grid", gridTemplateColumns: large ? "1.05fr .95fr" : "1fr", alignItems: "center", minHeight: large ? 420 : 340, padding: large ? "44px 32px" : "30px 18px" }}>
-            <div style={{ maxWidth: 480 }}>
+        <section style={{ position: "relative", background: p.hero_image ? `url(${p.hero_image}) center/cover` : "linear-gradient(100deg,#FDF0F6 0%,#FBE4EE 52%,#F5C9DC 100%)", overflow: "hidden" }}>
+          {p.hero_image && <div aria-hidden style={{ position: "absolute", inset: 0, background: large ? "linear-gradient(90deg, rgba(255,250,252,.88) 0%, rgba(255,248,251,.62) 30%, rgba(255,248,251,.12) 52%, rgba(255,248,251,0) 68%)" : "linear-gradient(180deg, rgba(255,250,252,.90) 0%, rgba(255,248,251,.74) 45%, rgba(255,248,251,.30) 100%)" }} />}
+          <div style={{ ...wrap, position: "relative", display: "grid", gridTemplateColumns: large ? "1.05fr .95fr" : "1fr", alignItems: "center", minHeight: large ? 460 : 380, padding: large ? "48px 32px" : "34px 18px" }}>
+            <div style={{ maxWidth: 480, textShadow: p.hero_image ? "0 1px 14px rgba(255,255,255,.85)" : "none" }}>
               <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "3px", color: C.blush }}>{p.hero_sur_titre}</div>
               <h1 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: large ? 46 : 32, fontWeight: 700, lineHeight: 1.08, margin: "12px 0 0" }}>{p.hero_titre}</h1>
               <div style={{ fontFamily: "'Dancing Script',cursive", fontSize: large ? 40 : 30, color: C.blush, lineHeight: 1.1, marginTop: 2 }}>{p.hero_titre_script}</div>
