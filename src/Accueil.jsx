@@ -263,29 +263,59 @@ export default function Accueil() {
       </section>
 
       {/* ================= FÒMASYON ================= */}
-      <section id="formations" style={{ ...wrap, padding: "60px 32px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 40, alignItems: "start" }}>
-          <div>
-            <div style={{ width: 46, height: 3, background: C.gold, marginBottom: 14 }} />
-            <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: Math.round(34 * F), fontWeight: 700, margin: 0, lineHeight: 1.1 }}>{p.formations_titre}</h2>
-            <p style={{ fontSize: Math.round(14.5 * F), color: C.inkSoft, lineHeight: 1.6, margin: "14px 0 22px" }}>{p.formations_texte}</p>
-            <a href="/inscription" style={btn("#fff", C.blush, `1.5px solid ${C.blush}`)}>Voir toutes les formations <Ico d={I.arrow} size={16} /></a>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: TEL ? 20 : 14 }}>
-            {programmes.slice(0, 6).map((g, i) => (
-              <a key={g.id} href={`/inscription?prog=${g.id}`} className="mt-card" style={{ borderRadius: 14, overflow: "hidden", background: "#fff", border: `1px solid ${C.line}`, textDecoration: "none", boxShadow: "0 6px 18px rgba(142,44,154,.06)" }}>
-                <div style={{ aspectRatio: "1 / .95", background: g.image_url ? `url(${g.image_url}) center/cover` : TINTS[i % TINTS.length], display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  {!g.image_url && <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: TEL ? 92 : 56, fontWeight: 700, color: "rgba(43,31,46,.35)" }}>{(g.nom || "?")[0]}</span>}
-                </div>
-                <div style={{ padding: TEL ? "16px 16px 18px" : "12px 13px 14px" }}>
-                  <div style={{ fontSize: Math.round(14.5 * (TEL ? 1.7 : 1)), fontWeight: 700, color: C.ink, lineHeight: 1.25 }}>{g.nom}</div>
-                  <div style={{ fontSize: Math.round(11.5 * (TEL ? 1.7 : 1)), color: C.inkFaint, marginTop: 5 }}>{g.duree || "Formation certifiante"}</div>
-                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}><span style={{ width: TEL ? 42 : 26, height: TEL ? 42 : 26, borderRadius: "50%", background: C.blush, display: "flex", alignItems: "center", justifyContent: "center" }}><Ico d={I.arrow} size={TEL ? 20 : 13} color="#fff" /></span></div>
-                </div>
+      <section id="formations" style={{ ...wrap, padding: TEL ? "44px 32px" : "60px 32px" }}>
+        {TEL ? (
+          /* --- Telefòn: tit santre anlè, 6 blòk an 3 kolòn, bouton nan 6yèm plas la --- */
+          <>
+            <div style={{ textAlign: "center", marginBottom: 26 }}>
+              <div style={{ width: 60, height: 3, background: C.gold, margin: "0 auto 16px" }} />
+              <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 68, fontWeight: 700, margin: 0, lineHeight: 1.05 }}>{p.formations_titre}</h2>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 20 }}>
+              {programmes.slice(0, 5).map((g, i) => (
+                <a key={g.id} href={`/inscription?prog=${g.id}`} className="mt-card" style={{ borderRadius: 14, overflow: "hidden", background: "#fff", border: `1px solid ${C.line}`, textDecoration: "none", boxShadow: "0 6px 18px rgba(142,44,154,.06)" }}>
+                  <div style={{ aspectRatio: "1 / .95", background: g.image_url ? `url(${g.image_url}) center/cover` : TINTS[i % TINTS.length], display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {!g.image_url && <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 92, fontWeight: 700, color: "rgba(43,31,46,.35)" }}>{(g.nom || "?")[0]}</span>}
+                  </div>
+                  <div style={{ padding: "16px 16px 18px" }}>
+                    <div style={{ fontSize: 25, fontWeight: 700, color: C.ink, lineHeight: 1.25 }}>{g.nom}</div>
+                    <div style={{ fontSize: 20, color: C.inkFaint, marginTop: 5 }}>{g.duree || "Formation certifiante"}</div>
+                    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}><span style={{ width: 42, height: 42, borderRadius: "50%", background: C.blush, display: "flex", alignItems: "center", justifyContent: "center" }}><Ico d={I.arrow} size={20} color="#fff" /></span></div>
+                  </div>
+                </a>
+              ))}
+              {/* 6yèm plas la: bouton an */}
+              <a href="/inscription" style={{ borderRadius: 14, border: `2px dashed ${C.blush}`, background: C.rose2, textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, padding: "20px 16px", textAlign: "center" }}>
+                <span style={{ width: 64, height: 64, borderRadius: "50%", background: C.blush, display: "flex", alignItems: "center", justifyContent: "center" }}><Ico d={I.arrow} size={28} color="#fff" /></span>
+                <span style={{ fontSize: 25, fontWeight: 800, color: C.blush, lineHeight: 1.25 }}>Voir toutes les formations</span>
               </a>
-            ))}
+            </div>
+          </>
+        ) : (
+          /* --- Òdinatè: jan li te ye --- */
+          <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 40, alignItems: "start" }}>
+            <div>
+              <div style={{ width: 46, height: 3, background: C.gold, marginBottom: 14 }} />
+              <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 34, fontWeight: 700, margin: 0 }}>{p.formations_titre}</h2>
+              <p style={{ fontSize: 14.5, color: C.inkSoft, lineHeight: 1.7, margin: "12px 0 20px" }}>{p.formations_texte}</p>
+              <a href="/inscription" style={btn("#fff", C.blush, `1.5px solid ${C.blush}`)}>Voir toutes les formations <Ico d={I.arrow} size={16} /></a>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
+              {programmes.slice(0, 4).map((g, i) => (
+                <a key={g.id} href={`/inscription?prog=${g.id}`} className="mt-card" style={{ borderRadius: 14, overflow: "hidden", background: "#fff", border: `1px solid ${C.line}`, textDecoration: "none", boxShadow: "0 6px 18px rgba(142,44,154,.06)" }}>
+                  <div style={{ aspectRatio: "1 / .95", background: g.image_url ? `url(${g.image_url}) center/cover` : TINTS[i % TINTS.length], display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {!g.image_url && <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 56, fontWeight: 700, color: "rgba(43,31,46,.35)" }}>{(g.nom || "?")[0]}</span>}
+                  </div>
+                  <div style={{ padding: "12px 13px 14px" }}>
+                    <div style={{ fontSize: 14.5, fontWeight: 700, color: C.ink }}>{g.nom}</div>
+                    <div style={{ fontSize: 11.5, color: C.inkFaint, marginTop: 3 }}>{g.duree || "Formation certifiante"}</div>
+                    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}><span style={{ width: 26, height: 26, borderRadius: "50%", background: C.blush, display: "flex", alignItems: "center", justifyContent: "center" }}><Ico d={I.arrow} size={13} color="#fff" /></span></div>
+                  </div>
+                </a>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </section>
 
       {/* ================= BOUTIK ================= */}
