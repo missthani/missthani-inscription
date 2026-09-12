@@ -14,15 +14,26 @@ const C = {
   blush: "#E5247E", magenta: "#C2238E", gold: "#E0A50A",
   green: "#1E8449", danger: "#C0392B", line: "rgba(142,44,154,.14)",
 };
-const GROUPES = [
-  { k: "identite", l: "Identité", e: "👑" },
-  { k: "public", l: "Page publique", e: "🏠" },
-  { k: "inscription", l: "Inscription", e: "📝" },
-  { k: "paiement", l: "Paiement", e: "💳" },
-  { k: "reglement", l: "Règlement", e: "📜" },
-  { k: "partenaires", l: "Partenaires", e: "🤝" },
-  { k: "messages", l: "Messages", e: "💬" },
-];
+/* Non ak icòn gwoup yo — nenpòt lòt gwoup parèt otomatikman */
+const NOMS = {
+  identite: ["Identité", "👑"],
+  accueil: ["Page d'accueil", "✨"],
+  public: ["App publique", "🏠"],
+  inscription: ["Inscription", "📝"],
+  paiement: ["Paiement", "💳"],
+  reglement: ["Règlement", "📜"],
+  partenaires: ["Partenaires", "🤝"],
+  messages: ["Messages", "💬"],
+};
+const ORDRE = ["identite", "accueil", "public", "inscription", "paiement", "reglement", "partenaires", "messages"];
+function groupesDe(rows) {
+  const vus = Array.from(new Set((rows || []).map((r) => r.groupe || "general")));
+  vus.sort((a, b) => {
+    const ia = ORDRE.indexOf(a), ib = ORDRE.indexOf(b);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
+  return vus.map((k) => ({ k, l: (NOMS[k] || [k.charAt(0).toUpperCase() + k.slice(1), "⚙️"])[0], e: (NOMS[k] || ["", "⚙️"])[1] }));
+}
 
 function Card({ children, style }) { return <div style={{ background: C.card, borderRadius: 16, border: `1px solid ${C.line}`, boxShadow: "0 6px 20px rgba(142,44,154,.06)", ...style }}>{children}</div>; }
 const btnPrim = { border: "none", borderRadius: 999, padding: "11px 16px", background: `linear-gradient(135deg, ${C.blush}, ${C.magenta})`, color: "#fff", fontSize: 12.5, fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "'Inter',sans-serif" };
@@ -76,6 +87,7 @@ export default function Parametres() {
   const [ok, setOk] = useState(() => { try { return sessionStorage.getItem("mt_admin") === "1" || sessionStorage.getItem("mt_params") === "1"; } catch (e) { return false; } });
   const [pwd, setPwd] = useState(""); const [err, setErr] = useState("");
   const [groupe, setGroupe] = useState("identite");
+  const GROUPES = groupesDe(rows || []);
   const [rows, setRows] = useState(null);
   const [vals, setVals] = useState({});
   const [base, setBase] = useState({});
@@ -110,8 +122,8 @@ export default function Parametres() {
     for (const k of modifs) await supabase.from("parametres").update({ valeur: vals[k] }).eq("cle", k);
     setBase({ ...vals }); setBusy(false); setSaved(true); setTimeout(() => setSaved(false), 3000);
   };
-  const liste = rows.filter((r) => r.groupe === groupe);
-  const g = GROUPES.find((x) => x.k === groupe) || GROUPES[0];
+  const liste = rows.filter((r) => (r.groupe || "general") === groupe);
+  const g = GROUPES.find((x) => x.k === groupe) || GROUPES[0] || { k: "", l: "", e: "" };
 
   return (
     <div style={shell}>
