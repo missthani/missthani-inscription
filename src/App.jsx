@@ -564,7 +564,19 @@ function VueAccueil({ programmes }) {
 /* ==================== PAJ INSCRIPTION ==================== */
 function VueInscription({ programmes, sessions }) {
   const [choix, setChoix] = useState(null);
-  useEffect(() => { if (!choix && programmes.length) setChoix(programmes[0].id); }, [programmes, choix]);
+  const videoRef = useRef(null);
+
+  /* Pwogram ki chwazi nan lyen an: /inscription?prog=<id> */
+  useEffect(() => {
+    if (!programmes.length) return;
+    let demande = "";
+    try { demande = new URLSearchParams(window.location.search || "").get("prog") || ""; } catch (e) {}
+    const trouve = programmes.find((p) => p.id === demande);
+    if (trouve) {
+      setChoix(trouve.id);
+      setTimeout(() => { if (videoRef.current) videoRef.current.scrollIntoView({ behavior: "smooth", block: "center" }); }, 450);
+    } else if (!choix) setChoix(programmes[0].id);
+  }, [programmes]);
   const prog = programmes.find((p) => p.id === choix);
   const sess = sessions.find((s) => s.programme_id === choix);
 
@@ -587,7 +599,7 @@ function VueInscription({ programmes, sessions }) {
         </div>
 
         {prog && (
-          <div style={{ marginTop: 14, background: C.card, borderRadius: 18, overflow: "hidden", boxShadow: "0 10px 24px rgba(142,44,154,.08)" }}>
+          <div ref={videoRef} style={{ marginTop: 14, background: C.card, borderRadius: 18, overflow: "hidden", boxShadow: "0 10px 24px rgba(142,44,154,.08)", scrollMarginTop: 90 }}>
             <div style={{ padding: "10px 14px", background: `linear-gradient(120deg, ${C.blush}, ${C.magenta})` }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>Nouvelle session — {prog.nom}</div>
               <div style={{ fontSize: 10.5, color: "rgba(255,255,255,.85)", marginTop: 1 }}>
