@@ -27,13 +27,25 @@ const EMO = { Onglerie: "💅", Maquillage: "💄", Tresse: "🎀", "Tresse afri
 const emo = (n) => EMO[n] || (/ongl/i.test(n) ? "💅" : /maqui/i.test(n) ? "💄" : /tress/i.test(n) ? "🎀" : /dread|loc/i.test(n) ? "🧶" : "🌸");
 const TINTS = ["linear-gradient(150deg,#F7DCEB,#E8A9C6)", "linear-gradient(150deg,#FBE4EE,#F0B9D3)", "linear-gradient(150deg,#EFD6C6,#D8AE92)", "linear-gradient(150deg,#E9D8EE,#C9A2C6)", "linear-gradient(150deg,#FDEBD8,#EFC79A)"];
 
-function useLarge(bp = 900) { const [w, setW] = useState(typeof window !== "undefined" ? window.innerWidth : 1200); useEffect(() => { const f = () => setW(window.innerWidth); window.addEventListener("resize", f); return () => window.removeEventListener("resize", f); }, []); return w >= bp; }
+/* Paj akèy la afiche menm jan sou telefòn ak sou òdinatè:
+   nou di navigatè a gade paj la kòm yon ekran 1160 px, epi li zoume l. */
+const LARGEUR_SITE = 1160;
+function useVueOrdi() {
+  useEffect(() => {
+    const m = document.querySelector('meta[name="viewport"]');
+    const avant = m ? m.getAttribute("content") : null;
+    if (m) m.setAttribute("content", `width=${LARGEUR_SITE}`);
+    return () => { if (m && avant) m.setAttribute("content", avant); };
+  }, []);
+}
+function useLarge() { return true; }
 
 const btn = (bg, col) => ({ display: "inline-flex", alignItems: "center", gap: 8, padding: "13px 24px", borderRadius: 999, background: bg, color: col, fontSize: 13.5, fontWeight: 700, textDecoration: "none", border: "none", cursor: "pointer", fontFamily: "'Inter',sans-serif" });
 
 export default function Accueil() {
-  const large = useLarge();
-  const mid = useLarge(640);
+  useVueOrdi();
+  const large = true;
+  const mid = true;
   const [p, setP] = useState(D);
   const [programmes, setProgrammes] = useState([]);
   const [produits, setProduits] = useState([]);
