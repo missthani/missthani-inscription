@@ -14,7 +14,7 @@ const D = {
   nom: "MISS THANI", sous_titre: "MAKE-UP & LACE CLUB",
   hero_sur_titre: "APPRENDRE · SE FORMER · RÉUSSIR", hero_titre: "Plus qu'une école,", hero_titre_script: "une communauté !",
   hero_texte: "Miss Thani Make-up & Lace Club est un espace dédié à la formation, à la beauté et à l'épanouissement personnel. Découvrez nos formations, notre boutique et tous nos services pour révéler votre potentiel.",
-  hero_bouton: "Découvrir notre univers", hero_image: "",
+  hero_bouton: "Découvrir notre univers", hero_image: "", hero_mode: "fond",
   formations_titre: "Nos Formations", formations_texte: "Apprenez auprès de professionnelles passionnées et développez vos talents avec des formations de qualité.",
   boutique_titre: "La beauté à portée de main", boutique_texte: "Retrouvez vos produits préférés, accessoires et indispensables beauté.",
   services_titre: "Nos Services", services_texte: "Des prestations adaptées à vos besoins pour une beauté complète et durable.",
@@ -106,29 +106,41 @@ export default function Accueil() {
       </header>
 
       {/* ================= BANYÈ ================= */}
-      <section style={{ position: "relative", background: p.hero_image ? `linear-gradient(90deg, rgba(255,245,250,.96) 0%, rgba(255,240,247,.80) 46%, rgba(255,240,247,.25) 100%), url(${p.hero_image}) center/cover` : "linear-gradient(100deg,#FDF0F6 0%,#FBE4EE 52%,#F5C9DC 100%)", overflow: "hidden" }}>
-        <div style={{ ...wrap, display: "grid", gridTemplateColumns: large ? "1.05fr .95fr" : "1fr", alignItems: "center", minHeight: large ? 420 : 340, padding: large ? "44px 32px" : "30px 18px" }}>
-          <div style={{ maxWidth: 480 }}>
-            <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "3px", color: C.blush }}>{p.hero_sur_titre}</div>
-            <h1 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: large ? 46 : 32, fontWeight: 700, lineHeight: 1.08, margin: "12px 0 0" }}>{p.hero_titre}</h1>
-            <div style={{ fontFamily: "'Dancing Script',cursive", fontSize: large ? 40 : 30, color: C.blush, lineHeight: 1.1, marginTop: 2 }}>{p.hero_titre_script}</div>
-            <p style={{ fontSize: 13.5, color: C.inkSoft, lineHeight: 1.75, margin: "16px 0 0" }}>{p.hero_texte}</p>
-            <div style={{ display: "flex", gap: 10, marginTop: 22, flexWrap: "wrap" }}>
-              <a href="#formations" style={btn(C.blush, "#fff")}>{p.hero_bouton} →</a>
-              <a href="/app" style={btn("#fff", C.blush)}>S'inscrire</a>
-            </div>
+      {p.hero_image && p.hero_mode === "image_seule" ? (
+        <section style={{ position: "relative" }}>
+          <img src={p.hero_image} alt={p.hero_titre} style={{ display: "block", width: "100%", height: "auto" }} />
+          {/* Bouton sou imaj la (sou gwo ekran li poze sou bouton ki desine a) */}
+          <div style={{ ...wrap, position: large ? "absolute" : "static", left: 0, right: 0, bottom: large ? "12%" : undefined, padding: large ? "0 32px" : "14px 18px 0", display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <a href="#formations" style={{ ...btn(C.blush, "#fff"), opacity: large ? 0 : 1, pointerEvents: large ? "none" : "auto" }}>{p.hero_bouton} →</a>
+            <a href="/inscription" style={btn("#fff", C.blush)}>S'inscrire</a>
           </div>
-          {large && !p.hero_image && (
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-              <div style={{ textAlign: "center", padding: "28px 34px", borderRadius: 20, background: "rgba(255,255,255,.5)", border: "1px solid rgba(255,255,255,.8)" }}>
-                <div style={{ fontSize: 44, color: C.gold }}>♛</div>
-                <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 30, fontWeight: 700, letterSpacing: "1px", color: C.noir, marginTop: 4 }}>{p.nom}</div>
-                <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: "3px", color: C.blush, marginTop: 4 }}>{p.sous_titre}</div>
+          {large && <a href="#formations" aria-label={p.hero_bouton} style={{ position: "absolute", left: "6%", bottom: "14%", width: "17%", height: "13%", borderRadius: 999 }} />}
+        </section>
+      ) : (
+        <section style={{ position: "relative", background: p.hero_image ? `linear-gradient(90deg, rgba(255,245,250,.96) 0%, rgba(255,240,247,.80) 46%, rgba(255,240,247,.25) 100%), url(${p.hero_image}) center/cover` : "linear-gradient(100deg,#FDF0F6 0%,#FBE4EE 52%,#F5C9DC 100%)", overflow: "hidden" }}>
+          <div style={{ ...wrap, display: "grid", gridTemplateColumns: large ? "1.05fr .95fr" : "1fr", alignItems: "center", minHeight: large ? 420 : 340, padding: large ? "44px 32px" : "30px 18px" }}>
+            <div style={{ maxWidth: 480 }}>
+              <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "3px", color: C.blush }}>{p.hero_sur_titre}</div>
+              <h1 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: large ? 46 : 32, fontWeight: 700, lineHeight: 1.08, margin: "12px 0 0" }}>{p.hero_titre}</h1>
+              <div style={{ fontFamily: "'Dancing Script',cursive", fontSize: large ? 40 : 30, color: C.blush, lineHeight: 1.1, marginTop: 2 }}>{p.hero_titre_script}</div>
+              <p style={{ fontSize: 13.5, color: C.inkSoft, lineHeight: 1.75, margin: "16px 0 0" }}>{p.hero_texte}</p>
+              <div style={{ display: "flex", gap: 10, marginTop: 22, flexWrap: "wrap" }}>
+                <a href="#formations" style={btn(C.blush, "#fff")}>{p.hero_bouton} →</a>
+                <a href="/inscription" style={btn("#fff", C.blush)}>S'inscrire</a>
               </div>
             </div>
-          )}
-        </div>
-      </section>
+            {large && !p.hero_image && (
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                <div style={{ textAlign: "center", padding: "28px 34px", borderRadius: 20, background: "rgba(255,255,255,.5)", border: "1px solid rgba(255,255,255,.8)" }}>
+                  <div style={{ fontSize: 44, color: C.gold }}>♛</div>
+                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 30, fontWeight: 700, letterSpacing: "1px", color: C.noir, marginTop: 4 }}>{p.nom}</div>
+                  <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: "3px", color: C.blush, marginTop: 4 }}>{p.sous_titre}</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* ================= 5 PILYE ================= */}
       <section style={{ background: C.rose2, borderBottom: `1px solid ${C.line}` }}>
