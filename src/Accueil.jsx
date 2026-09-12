@@ -249,7 +249,7 @@ export default function Accueil() {
             <p style={{ fontSize: px(14.5), color: C.inkSoft, lineHeight: 1.7, margin: "14px 0 0" }}>{p.hero_texte}</p>
             <div style={{ display: "flex", gap: 12, marginTop: 22 }}>
               {!TEL && <a href="#formations" style={{ ...btn(C.blush, "#fff"), fontSize: hx(15), padding: `${hx(14)}px ${hx(26)}px`, boxShadow: "0 8px 20px rgba(229,36,126,.30)" }}>{p.hero_bouton} <Ico d={I.arrow} size={hx(17)} color="#fff" /></a>}
-              <a href="/inscription" style={{ ...btn(TEL ? C.blush : "#fff", TEL ? "#fff" : C.blush), fontSize: hx(16), padding: `${hx(15)}px ${hx(30)}px`, boxShadow: TEL ? "0 8px 20px rgba(229,36,126,.30)" : "none" }}>S'inscrire</a>
+              <a href="/inscription" style={{ ...btn(C.blush, "#fff"), fontSize: hx(16), padding: `${hx(15)}px ${hx(30)}px`, boxShadow: "0 8px 20px rgba(229,36,126,.30)" }}>S'inscrire</a>
             </div>
           </div>
         </div>
@@ -271,16 +271,16 @@ export default function Accueil() {
             <p style={{ fontSize: Math.round(14.5 * F), color: C.inkSoft, lineHeight: 1.6, margin: "14px 0 22px" }}>{p.formations_texte}</p>
             <a href="/inscription" style={btn("#fff", C.blush, `1.5px solid ${C.blush}`)}>Voir toutes les formations <Ico d={I.arrow} size={16} /></a>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
-            {programmes.slice(0, 4).map((g, i) => (
-              <a key={g.id} href="/inscription" className="mt-card" style={{ borderRadius: 14, overflow: "hidden", background: "#fff", border: `1px solid ${C.line}`, textDecoration: "none", boxShadow: "0 6px 18px rgba(142,44,154,.06)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: TEL ? 20 : 14 }}>
+            {programmes.slice(0, 6).map((g, i) => (
+              <a key={g.id} href={`/inscription?prog=${g.id}`} className="mt-card" style={{ borderRadius: 14, overflow: "hidden", background: "#fff", border: `1px solid ${C.line}`, textDecoration: "none", boxShadow: "0 6px 18px rgba(142,44,154,.06)" }}>
                 <div style={{ aspectRatio: "1 / .95", background: g.image_url ? `url(${g.image_url}) center/cover` : TINTS[i % TINTS.length], display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  {!g.image_url && <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 56, fontWeight: 700, color: "rgba(43,31,46,.35)" }}>{(g.nom || "?")[0]}</span>}
+                  {!g.image_url && <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: TEL ? 92 : 56, fontWeight: 700, color: "rgba(43,31,46,.35)" }}>{(g.nom || "?")[0]}</span>}
                 </div>
-                <div style={{ padding: "12px 13px 14px" }}>
-                  <div style={{ fontSize: px(14.5), fontWeight: 700, color: C.ink }}>{g.nom}</div>
-                  <div style={{ fontSize: px(11.5), color: C.inkFaint, marginTop: 3 }}>{g.duree || "Formation certifiante"}</div>
-                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}><span style={{ width: 26, height: 26, borderRadius: "50%", background: C.blush, display: "flex", alignItems: "center", justifyContent: "center" }}><Ico d={I.arrow} size={13} color="#fff" /></span></div>
+                <div style={{ padding: TEL ? "16px 16px 18px" : "12px 13px 14px" }}>
+                  <div style={{ fontSize: Math.round(14.5 * (TEL ? 1.7 : 1)), fontWeight: 700, color: C.ink, lineHeight: 1.25 }}>{g.nom}</div>
+                  <div style={{ fontSize: Math.round(11.5 * (TEL ? 1.7 : 1)), color: C.inkFaint, marginTop: 5 }}>{g.duree || "Formation certifiante"}</div>
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}><span style={{ width: TEL ? 42 : 26, height: TEL ? 42 : 26, borderRadius: "50%", background: C.blush, display: "flex", alignItems: "center", justifyContent: "center" }}><Ico d={I.arrow} size={TEL ? 20 : 13} color="#fff" /></span></div>
                 </div>
               </a>
             ))}
