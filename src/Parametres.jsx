@@ -87,12 +87,12 @@ export default function Parametres() {
   const [ok, setOk] = useState(() => { try { return sessionStorage.getItem("mt_admin") === "1" || sessionStorage.getItem("mt_params") === "1"; } catch (e) { return false; } });
   const [pwd, setPwd] = useState(""); const [err, setErr] = useState("");
   const [groupe, setGroupe] = useState("identite");
-  const GROUPES = groupesDe(rows || []);
   const [rows, setRows] = useState(null);
   const [vals, setVals] = useState({});
   const [base, setBase] = useState({});
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
+  const GROUPES = groupesDe(rows || []);
 
   const entrer = () => { if (pwd === MOT_DE_PASSE) { setOk(true); try { sessionStorage.setItem("mt_params", "1"); } catch (e) {} } else setErr("Mot de passe incorrect."); };
   const recharger = async () => {
