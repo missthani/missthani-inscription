@@ -8,7 +8,7 @@ import { supabase } from "./supabaseClient";
    ============================================================ */
 
 const C = {
-  ink: "#2B1F2E", inkSoft: "rgba(43,31,46,.62)", inkFaint: "rgba(43,31,46,.42)",
+  ink: "#2B1F2E", inkSoft: "rgba(43,31,46,.88)", inkFaint: "rgba(43,31,46,.66)",
   blush: "#E5247E", magenta: "#C2238E", rose: "#FCE9F3", rose2: "#FDF5F9",
   gold: "#C9A227", noir: "#231A26", line: "rgba(142,44,154,.13)",
 };
@@ -33,6 +33,7 @@ const TEL = typeof window !== "undefined" && window.innerWidth < 760;
 const T = TEL ? 1.15 : 1;   /* telefòn: tèks +15 % */
 const H = TEL ? 1.55 : 1;   /* telefòn: antèt ak bouton prensipal yo +55 % */
 const N = TEL ? 2 : 1;      /* telefòn: non MISS THANI 2 fwa pi gwo */
+const F = TEL ? 2 : 1;      /* telefòn: tit seksyon Nos Formations 2 fwa pi laj */
 const px = (n) => Math.round(n * T * 10) / 10;
 const hx = (n) => Math.round(n * H * 10) / 10;
 function useVueOrdi() {
@@ -247,8 +248,8 @@ export default function Accueil() {
             <div style={{ fontFamily: "'Dancing Script',cursive", fontSize: px(40), color: C.blush, lineHeight: 1.1, marginTop: 2 }}>{p.hero_titre_script}</div>
             <p style={{ fontSize: px(14.5), color: C.inkSoft, lineHeight: 1.7, margin: "14px 0 0" }}>{p.hero_texte}</p>
             <div style={{ display: "flex", gap: 12, marginTop: 22 }}>
-              <a href="#formations" style={{ ...btn(C.blush, "#fff"), fontSize: hx(15), padding: `${hx(14)}px ${hx(26)}px`, boxShadow: "0 8px 20px rgba(229,36,126,.30)" }}>{p.hero_bouton} <Ico d={I.arrow} size={hx(17)} color="#fff" /></a>
-              <a href="/inscription" style={{ ...btn("#fff", C.blush), fontSize: hx(15), padding: `${hx(14)}px ${hx(26)}px` }}>S'inscrire</a>
+              {!TEL && <a href="#formations" style={{ ...btn(C.blush, "#fff"), fontSize: hx(15), padding: `${hx(14)}px ${hx(26)}px`, boxShadow: "0 8px 20px rgba(229,36,126,.30)" }}>{p.hero_bouton} <Ico d={I.arrow} size={hx(17)} color="#fff" /></a>}
+              <a href="/inscription" style={{ ...btn(TEL ? C.blush : "#fff", TEL ? "#fff" : C.blush), fontSize: hx(16), padding: `${hx(15)}px ${hx(30)}px`, boxShadow: TEL ? "0 8px 20px rgba(229,36,126,.30)" : "none" }}>S'inscrire</a>
             </div>
           </div>
         </div>
@@ -266,8 +267,8 @@ export default function Accueil() {
         <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 40, alignItems: "start" }}>
           <div>
             <div style={{ width: 46, height: 3, background: C.gold, marginBottom: 14 }} />
-            <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: px(34), fontWeight: 700, margin: 0 }}>{p.formations_titre}</h2>
-            <p style={{ fontSize: px(14.5), color: C.inkSoft, lineHeight: 1.7, margin: "12px 0 20px" }}>{p.formations_texte}</p>
+            <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: Math.round(34 * F), fontWeight: 700, margin: 0, lineHeight: 1.1 }}>{p.formations_titre}</h2>
+            <p style={{ fontSize: Math.round(14.5 * F), color: C.inkSoft, lineHeight: 1.6, margin: "14px 0 22px" }}>{p.formations_texte}</p>
             <a href="/inscription" style={btn("#fff", C.blush, `1.5px solid ${C.blush}`)}>Voir toutes les formations <Ico d={I.arrow} size={16} /></a>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
@@ -369,7 +370,7 @@ export default function Accueil() {
         <div style={{ ...wrap, display: "grid", gridTemplateColumns: "1.3fr 1fr 1.2fr 1.2fr", gap: 30, padding: "44px 32px" }}>
           <div>
             <Logo p={p} sombre />
-            <div style={{ fontFamily: "'Dancing Script',cursive", fontSize: px(22), color: C.blush, marginTop: 16 }}>{p.signature}</div>
+            <div style={{ fontFamily: "'Dancing Script',cursive", fontSize: Math.round(22 * N), color: C.blush, marginTop: 16 }}>{p.signature}</div>
           </div>
           <div>
             <div style={{ fontSize: px(13.5), fontWeight: 700, marginBottom: 12 }}>Liens rapides</div>
@@ -393,8 +394,8 @@ export default function Accueil() {
         </div>
         <div style={{ borderTop: "1px solid rgba(255,255,255,.10)" }}>
           <div style={{ ...wrap, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "14px 32px" }}>
-            <span style={{ fontSize: px(11.5), color: "rgba(255,255,255,.5)" }}>© {new Date().getFullYear()} {p.pied}. Tous droits réservés.</span>
-            <span style={{ fontFamily: "'Dancing Script',cursive", fontSize: px(17), color: C.blush }}>{p.slogan_bas}</span>
+            <span style={{ fontSize: Math.round(11.5 * N), color: "rgba(255,255,255,.72)" }}>© {new Date().getFullYear()} {p.pied}. Tous droits réservés.</span>
+            <span style={{ fontFamily: "'Dancing Script',cursive", fontSize: Math.round(17 * N), color: C.blush }}>{p.slogan_bas}</span>
           </div>
         </div>
       </footer>
