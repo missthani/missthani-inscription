@@ -511,19 +511,35 @@ function Produits() {
   const [nouveau, setNouveau] = useState(false);
   const [nv, setNv] = useState({ nom: "", categorie: "", prix_public: "", prix_eleve: "", prix_barre: "", stock: "", emoji: "📦", description: "", marque: "Miss Thani", nouveau: false });
   const [photo, setPhoto] = useState(null);
+  const [photoMsg, setPhotoMsg] = useState("");
   const monterPhoto = async (file, produitId) => {
     if (!file) return null;
+    if (file.size > 5 * 1024 * 1024) { setPhotoMsg("Photo trop lourde (max 5 Mo). Réduisez-la et réessayez."); return null; }
     const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
     const chemin = `${produitId || Date.now()}/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("produits").upload(chemin, file, { upsert: true });
-    if (error) return null;
+    const { error } = await supabase.storage.from("produits").upload(chemin, file, { upsert: true, contentType: file.type || "image/jpeg" });
+    if (error) {
+      const m = String(error.message || "");
+      setPhotoMsg(/bucket|not found/i.test(m) ? "Dossier photos absent : exécutez 17-photos-produits.sql dans Supabase."
+        : /policy|security/i.test(m) ? "Droits manquants sur les photos : exécutez 17-photos-produits.sql dans Supabase."
+        : "Envoi de la photo échoué : " + m);
+      return null;
+    }
     return supabase.storage.from("produits").getPublicUrl(chemin).data.publicUrl;
   };
   const changerPhoto = async (p, file) => {
+    setPhotoMsg("");
     const url = await monterPhoto(file, p.id);
     if (!url) return;
+    const { error } = await supabase.from("produits").update({ image_url: url }).eq("id", p.id);
+    if (error) { setPhotoMsg("Photo envoyée mais non enregistrée : " + error.message); return; }
     setRows((r) => r.map((x) => (x.id === p.id ? { ...x, image_url: url } : x)));
-    await supabase.from("produits").update({ image_url: url }).eq("id", p.id);
+    setPhotoMsg("✓ Photo mise à jour.");
+    setTimeout(() => setPhotoMsg(""), 2500);
+  };
+  const retirerPhoto = async (p) => {
+    await supabase.from("produits").update({ image_url: null }).eq("id", p.id);
+    setRows((r) => r.map((x) => (x.id === p.id ? { ...x, image_url: null } : x)));
   };
 
   const charger = async () => {
@@ -624,7 +640,13 @@ function Produits() {
             <input style={input} placeholder="Marque" value={nv.marque} onChange={(e) => setNv({ ...nv, marque: e.target.value })} />
             <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: C.ink }}><input type="checkbox" checked={nv.nouveau} onChange={(e) => setNv({ ...nv, nouveau: e.target.checked })} /> Nouveauté</label>
             <div style={{ gridColumn: "1 / -1" }}><input style={input} placeholder="Description courte" value={nv.description} onChange={(e) => setNv({ ...nv, description: e.target.value })} /></div>
-            <div style={{ gridColumn: "1 / -1" }}><label style={{ fontSize: 11, fontWeight: 700, color: C.inkSoft }}>Photo du produit</label><input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files && e.target.files[0])} style={{ fontSize: 12, display: "block", marginTop: 4 }} /></div>
+            <div style={{ gridColumn: "1 / -1" }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: C.inkSoft }}>Photo du produit</label>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
+                <span style={{ width: 56, height: 56, borderRadius: 11, flexShrink: 0, background: photo ? `url(${URL.createObjectURL(photo)}) center/cover` : "rgba(229,36,126,.10)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>{!photo && "📷"}</span>
+                <input type="file" accept="image/*" onChange={(e) => { setPhoto(e.target.files && e.target.files[0]); setPhotoMsg(""); }} style={{ fontSize: 12 }} />
+              </div>
+            </div>
           </div>
           {erreurAjout && <div style={{ marginBottom: 10, padding: "9px 12px", borderRadius: 11, background: "rgba(192,57,43,.10)", fontSize: 12.5, fontWeight: 700, color: C.danger, lineHeight: 1.5 }}>{erreurAjout}</div>}
           <div style={{ display: "flex", gap: 8 }}>
@@ -672,6 +694,7 @@ function Produits() {
                 <span style={{ flex: 1 }} />
                 <button onClick={() => ouvrir(p)} style={{ ...btnGhost, padding: "6px 12px", fontSize: 11.5 }}>Modifier</button>
                 <button onClick={() => visible(p)} style={{ ...btnGhost, padding: "6px 12px", fontSize: 11.5, color: p.visible ? C.danger : C.green }}>{p.visible ? "Masquer" : "Afficher"}</button>
+                {p.image_url && <button onClick={() => retirerPhoto(p)} style={{ ...btnGhost, padding: "6px 10px", fontSize: 11.5, color: C.inkFaint }}>Retirer la photo</button>}
               </div>
             )}
           </Card>
