@@ -30,17 +30,22 @@ const TINTS = ["linear-gradient(150deg,#F7DCEB,#E8A9C6)", "linear-gradient(150de
 /* Paj akèy la afiche menm jan sou telefòn ak sou òdinatè:
    nou di navigatè a gade paj la kòm yon ekran 1160 px, epi li zoume l. */
 const LARGEUR_SITE = 1160;
+const LARGEUR_TEL = 880;   /* pi piti = tout bagay pi gwo sou telefòn */
+function estTelephone() { try { return window.innerWidth < 760; } catch (e) { return false; } }
 function useVueOrdi() {
   useEffect(() => {
     const m = document.querySelector('meta[name="viewport"]');
     const avant = m ? m.getAttribute("content") : null;
-    if (m) m.setAttribute("content", `width=${LARGEUR_SITE}`);
+    const l = estTelephone() ? LARGEUR_TEL : LARGEUR_SITE;
+    if (m) m.setAttribute("content", `width=${l}`);
     return () => { if (m && avant) m.setAttribute("content", avant); };
   }, []);
 }
 function useLarge() { return true; }
 
-const btn = (bg, col) => ({ display: "inline-flex", alignItems: "center", gap: 8, padding: "13px 24px", borderRadius: 999, background: bg, color: col, fontSize: 13.5, fontWeight: 700, textDecoration: "none", border: "none", cursor: "pointer", fontFamily: "'Inter',sans-serif" });
+const T = typeof window !== "undefined" && window.innerWidth < 760 ? 1.18 : 1;   /* miltiplikatè tèks */
+const px = (n) => Math.round(n * T);
+const btn = (bg, col) => ({ display: "inline-flex", alignItems: "center", gap: 8, padding: `${px(14)}px ${px(26)}px`, borderRadius: 999, background: bg, color: col, fontSize: px(14), fontWeight: 700, textDecoration: "none", border: "none", cursor: "pointer", fontFamily: "'Inter',sans-serif" });
 
 export default function Accueil() {
   useVueOrdi();
@@ -90,14 +95,14 @@ export default function Accueil() {
           <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
             <span style={{ fontSize: 30 }}>👑</span>
             <span style={{ lineHeight: 1.05 }}>
-              <span style={{ display: "block", fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 700, letterSpacing: ".5px" }}>{p.nom}</span>
+              <span style={{ display: "block", fontFamily: "'Cormorant Garamond',serif", fontSize: px(21), fontWeight: 700, letterSpacing: ".5px" }}>{p.nom}</span>
               <span style={{ display: "block", fontSize: 8.5, fontWeight: 800, letterSpacing: "1.8px", color: C.blush }}>{p.sous_titre}</span>
             </span>
           </a>
           {large ? (
             <>
               <nav style={{ display: "flex", gap: 24 }}>
-                {NAV.map(([l, h], i) => <a key={l} href={h} style={{ fontSize: 13.5, fontWeight: i === 0 ? 700 : 500, color: i === 0 ? C.blush : C.ink, textDecoration: "none", borderBottom: i === 0 ? `2px solid ${C.blush}` : "2px solid transparent", paddingBottom: 4 }}>{l}</a>)}
+                {NAV.map(([l, h], i) => <a key={l} href={h} style={{ fontSize: px(14.5), fontWeight: i === 0 ? 700 : 500, color: i === 0 ? C.blush : C.ink, textDecoration: "none", borderBottom: i === 0 ? `2px solid ${C.blush}` : "2px solid transparent", paddingBottom: 4 }}>{l}</a>)}
               </nav>
               <div style={{ display: "flex", gap: 10 }}>
                 <a href="/etudiante" title="Mon espace" style={{ width: 38, height: 38, borderRadius: "50%", background: C.rose, display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", fontSize: 15 }}>👤</a>
@@ -133,10 +138,10 @@ export default function Accueil() {
           {p.hero_image && <div aria-hidden style={{ position: "absolute", inset: 0, background: large ? "linear-gradient(90deg, rgba(255,250,252,.88) 0%, rgba(255,248,251,.62) 30%, rgba(255,248,251,.12) 52%, rgba(255,248,251,0) 68%)" : "linear-gradient(180deg, rgba(255,250,252,.90) 0%, rgba(255,248,251,.74) 45%, rgba(255,248,251,.30) 100%)" }} />}
           <div style={{ ...wrap, position: "relative", display: "grid", gridTemplateColumns: large ? "1.05fr .95fr" : "1fr", alignItems: "center", minHeight: large ? 460 : 380, padding: large ? "48px 32px" : "34px 18px" }}>
             <div style={{ maxWidth: 480, textShadow: p.hero_image ? "0 1px 14px rgba(255,255,255,.85)" : "none" }}>
-              <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "3px", color: C.blush }}>{p.hero_sur_titre}</div>
-              <h1 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: large ? 46 : 32, fontWeight: 700, lineHeight: 1.08, margin: "12px 0 0" }}>{p.hero_titre}</h1>
-              <div style={{ fontFamily: "'Dancing Script',cursive", fontSize: large ? 40 : 30, color: C.blush, lineHeight: 1.1, marginTop: 2 }}>{p.hero_titre_script}</div>
-              <p style={{ fontSize: 13.5, color: C.inkSoft, lineHeight: 1.75, margin: "16px 0 0" }}>{p.hero_texte}</p>
+              <div style={{ fontSize: px(11.5), fontWeight: 800, letterSpacing: "3px", color: C.blush }}>{p.hero_sur_titre}</div>
+              <h1 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: px(46), fontWeight: 700, lineHeight: 1.08, margin: "12px 0 0" }}>{p.hero_titre}</h1>
+              <div style={{ fontFamily: "'Dancing Script',cursive", fontSize: px(40), color: C.blush, lineHeight: 1.1, marginTop: 2 }}>{p.hero_titre_script}</div>
+              <p style={{ fontSize: px(15), color: C.inkSoft, lineHeight: 1.75, margin: "16px 0 0" }}>{p.hero_texte}</p>
               <div style={{ display: "flex", gap: 10, marginTop: 22, flexWrap: "wrap" }}>
                 <a href="#formations" style={btn(C.blush, "#fff")}>{p.hero_bouton} →</a>
                 <a href="/inscription" style={btn("#fff", C.blush)}>S'inscrire</a>
@@ -161,8 +166,8 @@ export default function Accueil() {
           {[["🎓", "Formations", "Professionnelles & certifiantes", "#formations"], ["🛍️", "Boutique", "Produits de beauté & accessoires", "/boutique"], ["🍴", "Services", "Soins & prestations beauté", "#services"], ["👥", "Communauté", "Un réseau qui vous soutient", "#apropos"], ["♡", "Accompagnement", "De l'apprentissage à la réussite", "#apropos"]].map(([e, t, s, h], i, arr) => (
             <a key={t} href={h} style={{ flex: 1, minWidth: 150, textAlign: "center", padding: "6px 14px", textDecoration: "none", borderRight: i < arr.length - 1 && large ? `1px solid ${C.line}` : "none" }}>
               <div style={{ width: 52, height: 52, borderRadius: "50%", background: C.rose, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>{e}</div>
-              <div style={{ fontSize: 13.5, fontWeight: 700, marginTop: 9 }}>{t}</div>
-              <div style={{ fontSize: 10.5, color: C.inkFaint, marginTop: 3, lineHeight: 1.4 }}>{s}</div>
+              <div style={{ fontSize: px(15), fontWeight: 700, marginTop: 9 }}>{t}</div>
+              <div style={{ fontSize: px(12), color: C.inkFaint, marginTop: 3, lineHeight: 1.4 }}>{s}</div>
             </a>
           ))}
         </div>
@@ -173,8 +178,8 @@ export default function Accueil() {
         <div style={{ display: "grid", gridTemplateColumns: large ? "300px 1fr" : "1fr", gap: large ? 40 : 22, alignItems: "start" }}>
           <div>
             <div style={{ width: 46, height: 3, background: C.gold, marginBottom: 14 }} />
-            <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: large ? 34 : 27, fontWeight: 700, margin: 0 }}>{p.formations_titre}</h2>
-            <p style={{ fontSize: 13.5, color: C.inkSoft, lineHeight: 1.7, margin: "12px 0 20px" }}>{p.formations_texte}</p>
+            <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: px(34), fontWeight: 700, margin: 0 }}>{p.formations_titre}</h2>
+            <p style={{ fontSize: px(15), color: C.inkSoft, lineHeight: 1.7, margin: "12px 0 20px" }}>{p.formations_texte}</p>
             <a href="/app" style={btn("#fff", C.blush)}>Voir toutes les formations →</a>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: large ? "repeat(4,1fr)" : mid ? "repeat(2,1fr)" : "repeat(2,1fr)", gap: 14 }}>
@@ -182,8 +187,8 @@ export default function Accueil() {
               <a key={g.id} href="/app" className="mt-card" style={{ borderRadius: 14, overflow: "hidden", background: "#fff", border: `1px solid ${C.line}`, textDecoration: "none", boxShadow: "0 6px 18px rgba(142,44,154,.06)" }}>
                 <div style={{ aspectRatio: "1 / .95", background: TINTS[i % TINTS.length], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 42 }}>{emo(g.nom)}</div>
                 <div style={{ padding: "12px 13px 14px" }}>
-                  <div style={{ fontSize: 14, fontWeight: 700 }}>{g.nom}</div>
-                  <div style={{ fontSize: 11, color: C.inkFaint, marginTop: 3 }}>{g.duree || "Formation certifiante"}</div>
+                  <div style={{ fontSize: px(15.5), fontWeight: 700 }}>{g.nom}</div>
+                  <div style={{ fontSize: px(12.5), color: C.inkFaint, marginTop: 3 }}>{g.duree || "Formation certifiante"}</div>
                   <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}><span style={{ width: 26, height: 26, borderRadius: "50%", background: C.blush, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>→</span></div>
                 </div>
               </a>
@@ -199,9 +204,9 @@ export default function Accueil() {
           {large && <div style={{ aspectRatio: "1 / 1", borderRadius: 16, background: "linear-gradient(150deg,#F7DCEB,#E8A9C6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 56 }}>💄</div>}
           <div>
             <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "2.5px", color: C.blush }}>NOTRE BOUTIQUE</div>
-            <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: large ? 32 : 26, fontWeight: 700, margin: "8px 0 0", lineHeight: 1.15 }}>{p.boutique_titre}</h2>
+            <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: px(32), fontWeight: 700, margin: "8px 0 0", lineHeight: 1.15 }}>{p.boutique_titre}</h2>
             <div style={{ width: 46, height: 2, background: C.blush, margin: "12px 0" }} />
-            <p style={{ fontSize: 13.5, color: C.inkSoft, lineHeight: 1.7, margin: "0 0 18px" }}>{p.boutique_texte}</p>
+            <p style={{ fontSize: px(15), color: C.inkSoft, lineHeight: 1.7, margin: "0 0 18px" }}>{p.boutique_texte}</p>
             <a href="/boutique" style={btn("#fff", C.blush)}>Découvrir la boutique →</a>
           </div>
           <div style={{ background: "#fff", borderRadius: 16, padding: large ? "20px 18px" : "16px 14px" }}>
@@ -221,8 +226,8 @@ export default function Accueil() {
       <section id="services" style={{ ...wrap, padding: large ? "56px 32px" : "38px 18px" }}>
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 14, marginBottom: 20, flexWrap: "wrap" }}>
           <div>
-            <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: large ? 32 : 26, fontWeight: 700, margin: 0 }}>{p.services_titre}</h2>
-            <p style={{ fontSize: 13, color: C.inkSoft, margin: "8px 0 0" }}>{p.services_texte}</p>
+            <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: px(32), fontWeight: 700, margin: 0 }}>{p.services_titre}</h2>
+            <p style={{ fontSize: px(14.5), color: C.inkSoft, margin: "8px 0 0" }}>{p.services_texte}</p>
           </div>
           <a href="#contact" style={btn("#fff", C.blush)}>Voir tous les services →</a>
         </div>
@@ -232,8 +237,8 @@ export default function Accueil() {
               <span style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(43,31,46,0) 35%, rgba(43,31,46,.62) 100%)" }} />
               {!s.image_url && <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, opacity: .85 }}>{s.emoji}</span>}
               <span style={{ position: "absolute", left: 13, bottom: 12, color: "#fff" }}>
-                <span style={{ display: "block", fontSize: 14, fontWeight: 700 }}>{s.titre}</span>
-                <span style={{ display: "block", fontSize: 11, opacity: .9, marginTop: 2 }}>{s.sous_titre}</span>
+                <span style={{ display: "block", fontSize: px(15.5), fontWeight: 700 }}>{s.titre}</span>
+                <span style={{ display: "block", fontSize: px(12.5), opacity: .9, marginTop: 2 }}>{s.sous_titre}</span>
               </span>
               <span style={{ position: "absolute", right: 12, bottom: 12, width: 24, height: 24, borderRadius: "50%", background: "rgba(255,255,255,.9)", color: C.blush, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800 }}>+</span>
             </a>
@@ -247,8 +252,8 @@ export default function Accueil() {
         <div style={{ ...wrap, padding: large ? "50px 32px" : "36px 18px" }}>
           <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 14, marginBottom: 20 }}>
             <div>
-              <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: large ? 30 : 25, fontWeight: 700, margin: 0 }}>{p.temoignages_titre}</h2>
-              <p style={{ fontSize: 13, color: C.inkSoft, margin: "7px 0 0" }}>{p.temoignages_texte}</p>
+              <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: px(30), fontWeight: 700, margin: 0 }}>{p.temoignages_titre}</h2>
+              <p style={{ fontSize: px(14.5), color: C.inkSoft, margin: "7px 0 0" }}>{p.temoignages_texte}</p>
             </div>
             {temoins.length > 1 && (
               <div style={{ display: "flex", gap: 8 }}>
@@ -262,8 +267,8 @@ export default function Accueil() {
               <div key={t.id + "-" + i} style={{ background: "#fff", borderRadius: 14, border: `1px solid ${C.line}`, padding: 16, display: "flex", gap: 13 }}>
                 <div style={{ width: 44, height: 44, borderRadius: "50%", background: t.photo_url ? `url(${t.photo_url}) center/cover` : C.rose, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, color: C.blush, fontWeight: 800 }}>{!t.photo_url && (t.nom || "?")[0]}</div>
                 <div>
-                  <div style={{ fontSize: 12.5, color: C.inkSoft, lineHeight: 1.65, fontStyle: "italic" }}>"{t.texte}"</div>
-                  <div style={{ fontSize: 12, fontWeight: 700, marginTop: 8 }}>— {t.nom}</div>
+                  <div style={{ fontSize: px(14), color: C.inkSoft, lineHeight: 1.65, fontStyle: "italic" }}>"{t.texte}"</div>
+                  <div style={{ fontSize: px(13.5), fontWeight: 700, marginTop: 8 }}>— {t.nom}</div>
                   <div style={{ color: C.gold, fontSize: 12, marginTop: 3 }}>{"★".repeat(t.note || 5)}</div>
                 </div>
               </div>
@@ -286,18 +291,18 @@ export default function Accueil() {
             <div style={{ fontFamily: "'Dancing Script',cursive", fontSize: 22, color: C.blush, marginTop: 14 }}>{p.signature}</div>
           </div>
           <div>
-            <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 12 }}>Liens rapides</div>
-            {NAV.map(([l, h]) => <a key={l} href={h} style={{ display: "block", fontSize: 12.5, color: "rgba(255,255,255,.68)", textDecoration: "none", padding: "4px 0" }}>{l}</a>)}
+            <div style={{ fontSize: px(14), fontWeight: 700, marginBottom: 12 }}>Liens rapides</div>
+            {NAV.map(([l, h]) => <a key={l} href={h} style={{ display: "block", fontSize: px(14), color: "rgba(255,255,255,.68)", textDecoration: "none", padding: "4px 0" }}>{l}</a>)}
           </div>
           <div>
-            <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 12 }}>Plus d'infos</div>
-            {[["📞", p.telephone], ["✉️", p.email], ["📍", p.adresse]].map(([e, v]) => <div key={v} style={{ display: "flex", gap: 8, fontSize: 12.5, color: "rgba(255,255,255,.68)", padding: "4px 0" }}><span>{e}</span>{v}</div>)}
+            <div style={{ fontSize: px(14), fontWeight: 700, marginBottom: 12 }}>Plus d'infos</div>
+            {[["📞", p.telephone], ["✉️", p.email], ["📍", p.adresse]].map(([e, v]) => <div key={v} style={{ display: "flex", gap: 8, fontSize: px(14), color: "rgba(255,255,255,.68)", padding: "4px 0" }}><span>{e}</span>{v}</div>)}
             <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
               {[["f", p.facebook], ["◎", p.instagram], ["♪", p.tiktok]].map(([e, h], i) => h ? <a key={i} href={h} target="_blank" rel="noopener noreferrer" style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(255,255,255,.10)", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", color: "#fff", fontSize: 13 }}>{e}</a> : null)}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 12 }}>Newsletter</div>
+            <div style={{ fontSize: px(14), fontWeight: 700, marginBottom: 12 }}>Newsletter</div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,.6)", lineHeight: 1.6, marginBottom: 10 }}>Restez informé(e) de nos nouveautés et offres spéciales.</div>
             <a href={`mailto:${p.email}`} style={{ display: "flex", alignItems: "center", background: "#fff", borderRadius: 8, overflow: "hidden", textDecoration: "none" }}>
               <span style={{ flex: 1, padding: "11px 12px", fontSize: 12, color: C.inkFaint }}>Votre adresse e-mail</span>
