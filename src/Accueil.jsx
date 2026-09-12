@@ -32,6 +32,7 @@ const LARGEUR = 1160;
 const TEL = typeof window !== "undefined" && window.innerWidth < 760;
 const T = TEL ? 1.15 : 1;   /* telefòn: tèks +15 % */
 const H = TEL ? 1.55 : 1;   /* telefòn: antèt ak bouton prensipal yo +55 % */
+const N = TEL ? 2 : 1;      /* telefòn: non MISS THANI 2 fwa pi gwo */
 const px = (n) => Math.round(n * T * 10) / 10;
 const hx = (n) => Math.round(n * H * 10) / 10;
 function useVueOrdi() {
@@ -68,19 +69,20 @@ function Logo({ p, sombre }) {
   const col = sombre ? "#fff" : C.ink;
   return (
     <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-      <span style={{ width: hx(40), height: hx(40), borderRadius: 12, background: sombre ? "rgba(255,255,255,.10)" : C.rose, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Ico d={I.crown} size={hx(22)} color={C.gold} /></span>
+      <span style={{ width: Math.round(21 * N * 2), height: Math.round(21 * N * 2), borderRadius: 12, background: sombre ? "rgba(255,255,255,.10)" : C.rose, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Ico d={I.crown} size={Math.round(22 * N)} color={C.gold} /></span>
       <span style={{ lineHeight: 1.05 }}>
-        <span style={{ display: "block", fontFamily: "'Cormorant Garamond',serif", fontSize: hx(21), fontWeight: 700, letterSpacing: ".5px", color: col, whiteSpace: "nowrap" }}>{p.nom}</span>
-        <span style={{ display: "block", fontSize: hx(8.5), fontWeight: 800, letterSpacing: "1.8px", color: C.blush, whiteSpace: "nowrap" }}>{p.sous_titre}</span>
+        <span style={{ display: "block", fontFamily: "'Cormorant Garamond',serif", fontSize: Math.round(21 * N), fontWeight: 700, letterSpacing: ".5px", color: col, whiteSpace: "nowrap" }}>{p.nom}</span>
+        <span style={{ display: "block", fontSize: Math.round(9 * N), fontWeight: 800, letterSpacing: "1.8px", color: C.blush, whiteSpace: "nowrap" }}>{p.sous_titre}</span>
       </span>
     </a>
   );
 }
 
-/* ---- Tchat Carla sou paj akèy la ---- */
+/* ---- Tchat Carla sou paj akèy la — yon sèl blòk ---- */
 function BlocCarla({ p }) {
   const [reponses, setReponses] = useState([]);
-  const [msgs, setMsgs] = useState([{ a: "carla", t: p.carla_bienvenue || "Bonjour ! Je suis Carla, l'assistante de Miss Thani. Posez-moi vos questions sur les formations, les prix et les inscriptions." }]);
+  const [ouvert, setOuvert] = useState(false);          // vin tchat apre premye mesaj la
+  const [msgs, setMsgs] = useState([]);
   const [sugg, setSugg] = useState(["Quelles formations proposez-vous ?", "Combien ça coûte ?", "Quand commence la prochaine session ?", "Je veux m'inscrire"]);
   const [draft, setDraft] = useState("");
   const [ecrit, setEcrit] = useState(false);
@@ -89,12 +91,13 @@ function BlocCarla({ p }) {
   useEffect(() => {
     supabase.from("carla_reponses").select("*").eq("visible", true).order("ordre").then(({ data }) => { const r = data || []; setReponses(r); if (r.length) setSugg(r.slice(0, 4).map((x) => x.question)); });
   }, []);
-  useEffect(() => { setMsgs((m) => (m.length === 1 && p.carla_bienvenue ? [{ a: "carla", t: p.carla_bienvenue }] : m)); }, [p.carla_bienvenue]);
   useEffect(() => { const el = listRef.current; if (el) el.scrollTop = el.scrollHeight; }, [msgs, ecrit]);
 
   const envoyer = (texte) => {
     const t = (texte || draft).trim(); if (!t) return;
-    setMsgs((m) => [...m, { a: "moi", t }]); setDraft(""); setEcrit(true);
+    if (!ouvert) { setOuvert(true); setMsgs([{ a: "carla", t: p.carla_bienvenue || "Bonjour ! Je suis Carla, l'assistante de Miss Thani." }, { a: "moi", t }]); }
+    else setMsgs((m) => [...m, { a: "moi", t }]);
+    setDraft(""); setEcrit(true);
     const r = reponses.find((x) => x.question === t);
     setTimeout(() => {
       setEcrit(false);
@@ -105,35 +108,46 @@ function BlocCarla({ p }) {
   };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1.6fr", gap: 28, alignItems: "center" }}>
-      <div>
-        <div style={{ fontSize: px(10.5), fontWeight: 800, letterSpacing: "2.5px", color: C.blush }}>VOTRE ASSISTANTE</div>
-        <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: px(34), fontWeight: 700, margin: "8px 0 0", lineHeight: 1.1 }}>Une question ?</h2>
-        <div style={{ fontFamily: "'Dancing Script',cursive", fontSize: px(30), color: C.blush, marginTop: 2 }}>Carla vous répond</div>
-        <p style={{ fontSize: px(14.5), color: C.inkSoft, lineHeight: 1.7, margin: "12px 0 18px" }}>Formations, prix, dates de session, inscription — posez votre question, Carla répond tout de suite. Pour un cas particulier, l'équipe prend le relais sur WhatsApp.</p>
-        <a href="/carla" style={{ ...btn("#fff", C.blush, `1.5px solid ${C.blush}`), fontSize: hx(14) }}>Ouvrir la conversation <Ico d={I.arrow} size={16} /></a>
+    <div style={{ borderRadius: 22, overflow: "hidden", background: "#fff", border: `1px solid ${C.line}`, boxShadow: "0 14px 36px rgba(142,44,154,.10)" }}>
+      {/* Antèt */}
+      <div style={{ background: `linear-gradient(120deg, ${C.blush}, ${C.magenta})`, padding: `${hx(18)}px ${hx(22)}px`, color: "#fff", display: "flex", alignItems: "center", gap: hx(14), position: "relative", overflow: "hidden" }}>
+        <div aria-hidden style={{ position: "absolute", right: -30, bottom: -44, width: 150, height: 150, borderRadius: "50%", background: "rgba(255,255,255,.12)" }} />
+        <span style={{ width: hx(46), height: hx(46), borderRadius: "50%", background: "rgba(255,255,255,.95)", color: C.magenta, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Cormorant Garamond',serif", fontSize: hx(22), fontWeight: 700, flexShrink: 0, position: "relative" }}>C</span>
+        <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: hx(16), fontWeight: 800 }}>Carla, votre assistante</div>
+          <div style={{ fontSize: hx(11.5), opacity: .92, display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}><span style={{ width: 7, height: 7, borderRadius: 999, background: "#4ADE80" }} />En ligne · répond tout de suite</div>
+        </div>
+        {ouvert && <a href="/carla" style={{ position: "relative", padding: `${hx(8)}px ${hx(14)}px`, borderRadius: 999, background: "rgba(255,255,255,.92)", color: C.magenta, fontSize: hx(12), fontWeight: 800, textDecoration: "none", whiteSpace: "nowrap" }}>Plein écran</a>}
       </div>
-      <div style={{ borderRadius: 20, overflow: "hidden", background: "#fff", border: `1px solid ${C.line}`, boxShadow: "0 14px 36px rgba(142,44,154,.10)" }}>
-        <div style={{ background: `linear-gradient(120deg, ${C.blush}, ${C.magenta})`, padding: "14px 18px", color: "#fff", display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,.95)", color: C.magenta, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 700 }}>C</span>
-          <div style={{ lineHeight: 1.15 }}><div style={{ fontSize: px(15), fontWeight: 800 }}>Carla</div><div style={{ fontSize: px(11), opacity: .92, display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}><span style={{ width: 7, height: 7, borderRadius: 999, background: "#4ADE80" }} />En ligne</div></div>
+
+      {/* Kò a */}
+      <div style={{ background: C.rose2, padding: `${hx(16)}px ${hx(20)}px ${hx(18)}px` }}>
+        {!ouvert ? (
+          <p style={{ margin: `0 0 ${hx(14)}px`, fontSize: px(14.5), color: C.inkSoft, lineHeight: 1.7, maxWidth: 640 }}>
+            Formations, prix, dates de session, inscription — posez votre question, Carla répond tout de suite.
+          </p>
+        ) : (
+          <div ref={listRef} style={{ maxHeight: 300, overflowY: "auto", display: "flex", flexDirection: "column", gap: 9, marginBottom: hx(12) }}>
+            {msgs.map((m, i) => m.a === "action" ? (
+              <div key={i}><a href="/inscription" style={{ ...btn(C.blush, "#fff"), padding: `${hx(10)}px ${hx(18)}px`, fontSize: hx(13) }}>Aller à l'inscription</a></div>
+            ) : (
+              <div key={i} style={{ display: "flex", justifyContent: m.a === "moi" ? "flex-end" : "flex-start" }}>
+                <div style={{ maxWidth: "82%", padding: `${hx(11)}px ${hx(14)}px`, borderRadius: 16, borderBottomRightRadius: m.a === "moi" ? 5 : 16, borderBottomLeftRadius: m.a === "moi" ? 16 : 5, background: m.a === "moi" ? `linear-gradient(135deg, ${C.blush}, ${C.magenta})` : "#fff", color: m.a === "moi" ? "#fff" : C.ink, fontSize: px(13.5), lineHeight: 1.6, border: m.a === "moi" ? "none" : `1px solid ${C.line}` }}>{m.t}</div>
+              </div>
+            ))}
+            {ecrit && <div style={{ fontSize: px(12.5), color: C.inkFaint, fontStyle: "italic" }}>Carla écrit…</div>}
+          </div>
+        )}
+
+        {/* Chan ekri a — toujou la */}
+        <div style={{ display: "flex", alignItems: "center", gap: hx(10) }}>
+          <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") envoyer(); }} placeholder="Écrivez votre question à Carla…" style={{ flex: 1, padding: `${hx(14)}px ${hx(18)}px`, borderRadius: 999, border: `1.4px solid ${C.line}`, background: "#fff", color: C.ink, fontSize: hx(14), fontFamily: "'Inter',sans-serif", outline: "none" }} />
+          <button onClick={() => envoyer()} aria-label="Envoyer" style={{ width: hx(50), height: hx(50), borderRadius: "50%", border: "none", background: `linear-gradient(135deg, ${C.blush}, ${C.magenta})`, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 8px 18px rgba(229,36,126,.30)" }}><Ico d={I.send} size={hx(20)} color="#fff" /></button>
         </div>
-        <div ref={listRef} style={{ height: 230, overflowY: "auto", padding: "14px 16px 6px", display: "flex", flexDirection: "column", gap: 9, background: C.rose2 }}>
-          {msgs.map((m, i) => m.a === "action" ? (
-            <div key={i} style={{ display: "flex", gap: 8 }}><a href="/inscription" style={{ ...btn(C.blush, "#fff"), padding: "9px 16px", fontSize: px(12.5) }}>Aller à l'inscription</a></div>
-          ) : (
-            <div key={i} style={{ display: "flex", justifyContent: m.a === "moi" ? "flex-end" : "flex-start" }}>
-              <div style={{ maxWidth: "80%", padding: "10px 13px", borderRadius: 14, borderBottomRightRadius: m.a === "moi" ? 4 : 14, borderBottomLeftRadius: m.a === "moi" ? 14 : 4, background: m.a === "moi" ? `linear-gradient(135deg, ${C.blush}, ${C.magenta})` : "#fff", color: m.a === "moi" ? "#fff" : C.ink, fontSize: px(13), lineHeight: 1.55, border: m.a === "moi" ? "none" : `1px solid ${C.line}` }}>{m.t}</div>
-            </div>
-          ))}
-          {ecrit && <div style={{ fontSize: px(12), color: C.inkFaint, fontStyle: "italic" }}>Carla écrit…</div>}
-        </div>
-        <div style={{ display: "flex", gap: 7, overflowX: "auto", padding: "10px 16px 4px", background: C.rose2 }}>
-          {sugg.map((q) => <button key={q} onClick={() => envoyer(q)} style={{ flexShrink: 0, padding: "8px 13px", borderRadius: 999, border: `1.3px solid ${C.blush}`, background: "#fff", color: C.blush, fontSize: px(12), fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>{q}</button>)}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "10px 16px 14px", background: C.rose2 }}>
-          <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") envoyer(); }} placeholder="Écrivez votre question…" style={{ flex: 1, padding: "11px 14px", borderRadius: 999, border: `1.4px solid ${C.line}`, background: "#fff", color: C.ink, fontSize: px(13.5), fontFamily: "'Inter',sans-serif", outline: "none" }} />
-          <button onClick={() => envoyer()} aria-label="Envoyer" style={{ width: 42, height: 42, borderRadius: "50%", border: "none", background: `linear-gradient(135deg, ${C.blush}, ${C.magenta})`, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Ico d={I.send} size={17} color="#fff" /></button>
+
+        {/* Sijesyon */}
+        <div style={{ display: "flex", gap: 8, overflowX: "auto", marginTop: hx(12) }}>
+          {sugg.map((q) => <button key={q} onClick={() => envoyer(q)} style={{ flexShrink: 0, padding: `${hx(9)}px ${hx(15)}px`, borderRadius: 999, border: `1.3px solid ${C.blush}`, background: "#fff", color: C.blush, fontSize: hx(12.5), fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>{q}</button>)}
         </div>
       </div>
     </div>
@@ -181,7 +195,7 @@ export default function Accueil() {
 
       {/* ================= ANTÈT ================= */}
       <header style={{ borderBottom: `1px solid ${C.line}`, background: "#fff", position: "sticky", top: 0, zIndex: 40 }}>
-        <div style={{ ...wrap, display: "flex", alignItems: "center", justifyContent: "space-between", height: hx(72), gap: 20 }}>
+        <div style={{ ...wrap, display: "flex", alignItems: "center", justifyContent: "space-between", height: Math.round(72 * (TEL ? 1.9 : 1)), gap: 20 }}>
           <Logo p={p} />
           <div style={{ display: "flex", alignItems: "center", gap: hx(24) }}>
             <nav style={{ display: "flex", gap: hx(24) }}>
