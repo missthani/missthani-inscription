@@ -79,6 +79,57 @@ function Logo({ p, sombre }) {
   );
 }
 
+/* ---- Blòk fòmasyon yo k ap defile pou kont yo ---- */
+function PisteFormations({ programmes, TEL }) {
+  const ref = React.useRef(null);
+  const pause = React.useRef(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || programmes.length === 0) return;
+    let raf;
+    const tick = () => {
+      const moitie = el.scrollWidth / 2;
+      if (!pause.current && moitie > 0) {
+        el.scrollLeft += 0.5;
+        if (el.scrollLeft >= moitie) el.scrollLeft -= moitie;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [programmes.length]);
+
+  const arret = () => { pause.current = true; };
+  const reprise = () => { setTimeout(() => { pause.current = false; }, 1800); };
+
+  return (
+    <div
+      ref={ref}
+      className="mt-defile"
+      onMouseEnter={arret} onMouseLeave={reprise}
+      onTouchStart={arret} onTouchEnd={reprise}
+      onPointerDown={arret} onPointerUp={reprise}
+      style={{ overflowX: "auto", overflowY: "hidden", WebkitOverflowScrolling: "touch" }}
+    >
+      <div style={{ display: "flex", gap: 14, width: "max-content", padding: "4px 0" }}>
+        {[...programmes, ...programmes].map((g, i) => (
+          <a key={g.id + "-" + i} href={`/inscription?prog=${g.id}`} style={{ width: TEL ? 260 : 190, flexShrink: 0, borderRadius: 14, overflow: "hidden", background: "#fff", border: `1px solid ${C.line}`, textDecoration: "none", boxShadow: "0 6px 18px rgba(142,44,154,.06)" }}>
+            <div style={{ aspectRatio: "1 / .95", background: g.image_url ? `url(${g.image_url}) center/cover` : TINTS[i % TINTS.length], display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {!g.image_url && <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: TEL ? 76 : 56, fontWeight: 700, color: "rgba(43,31,46,.35)" }}>{(g.nom || "?")[0]}</span>}
+            </div>
+            <div style={{ padding: TEL ? "14px 15px 16px" : "12px 13px 14px" }}>
+              <div style={{ fontSize: TEL ? 21 : 14.5, fontWeight: 700, color: C.ink, lineHeight: 1.25 }}>{g.nom}</div>
+              <div style={{ fontSize: TEL ? 17 : 11.5, color: C.inkFaint, marginTop: 4 }}>{g.duree || "Formation certifiante"}</div>
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}><span style={{ width: TEL ? 36 : 26, height: TEL ? 36 : 26, borderRadius: "50%", background: C.blush, display: "flex", alignItems: "center", justifyContent: "center" }}><Ico d={I.arrow} size={TEL ? 17 : 13} color="#fff" /></span></div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ---- Tchat Carla sou paj akèy la — yon sèl blòk ---- */
 function BlocCarla({ p }) {
   const [reponses, setReponses] = useState([]);
@@ -191,9 +242,8 @@ export default function Accueil() {
       <style>{`
         *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0}html{scroll-behavior:smooth}
         .mt-card{transition:transform .2s ease, box-shadow .2s ease}
-        @keyframes mt-defiler{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-        .mt-piste{animation:mt-defiler 36s linear infinite}
-        .mt-defile:hover .mt-piste{animation-play-state:paused}
+        .mt-defile::-webkit-scrollbar{display:none}
+        .mt-defile{scrollbar-width:none;-ms-overflow-style:none}
         .mt-card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(142,44,154,.14)}
       `}</style>
 
@@ -275,22 +325,7 @@ export default function Accueil() {
           </div>
 
           {/* Blòk yo sou yon sèl liy, k ap defile pou kont yo */}
-          <div className="mt-defile" style={{ overflow: "hidden", maskImage: "linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 40px), transparent 100%)", WebkitMaskImage: "linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 40px), transparent 100%)" }}>
-            <div className="mt-piste" style={{ display: "flex", gap: 14, width: "max-content" }}>
-              {[...programmes, ...programmes].map((g, i) => (
-                <a key={g.id + "-" + i} href={`/inscription?prog=${g.id}`} style={{ width: TEL ? 260 : 190, flexShrink: 0, borderRadius: 14, overflow: "hidden", background: "#fff", border: `1px solid ${C.line}`, textDecoration: "none", boxShadow: "0 6px 18px rgba(142,44,154,.06)" }}>
-                  <div style={{ aspectRatio: "1 / .95", background: g.image_url ? `url(${g.image_url}) center/cover` : TINTS[i % TINTS.length], display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    {!g.image_url && <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: TEL ? 76 : 56, fontWeight: 700, color: "rgba(43,31,46,.35)" }}>{(g.nom || "?")[0]}</span>}
-                  </div>
-                  <div style={{ padding: TEL ? "14px 15px 16px" : "12px 13px 14px" }}>
-                    <div style={{ fontSize: TEL ? 21 : 14.5, fontWeight: 700, color: C.ink, lineHeight: 1.25 }}>{g.nom}</div>
-                    <div style={{ fontSize: TEL ? 17 : 11.5, color: C.inkFaint, marginTop: 4 }}>{g.duree || "Formation certifiante"}</div>
-                    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}><span style={{ width: TEL ? 36 : 26, height: TEL ? 36 : 26, borderRadius: "50%", background: C.blush, display: "flex", alignItems: "center", justifyContent: "center" }}><Ico d={I.arrow} size={TEL ? 17 : 13} color="#fff" /></span></div>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
+          <PisteFormations programmes={programmes} TEL={TEL} />
         </div>
       </section>
 
