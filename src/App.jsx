@@ -710,7 +710,7 @@ const LIENS = [
 ];
 function BarreNav({ actif, grand }) {
   /* `grand` = paj ki afiche an vi òdinatè sou telefòn (zoume), donk bouton yo pi gwo */
-  const k = grand && typeof window !== "undefined" && window.screen && window.screen.width < 760 ? 2.4 : 1;
+  const k = grand && typeof window !== "undefined" && window.screen && window.screen.width < 760 ? 2.9 : 1;
   return (
     <nav style={{ position: "fixed", left: 0, right: 0, bottom: 0, background: "#fff", borderTop: `1px solid ${C.line}`, display: "flex", justifyContent: "space-around", padding: `${10 * k}px 2px ${18 * k}px`, boxShadow: "0 -6px 18px rgba(142,44,154,.08)", zIndex: 60 }}>
       {LIENS.map((t) => {
@@ -770,7 +770,7 @@ export default function App() {
   const chemin = typeof window !== "undefined" ? window.location.pathname.replace(/\/+$/, "") : "";
   if (chemin === "/gestion-boutique") return <GestionBoutique />;
   if (chemin === "/boutique") return <><PageBoutique /><BarreNav actif="/boutique" /></>;
-  if (chemin === "" || chemin === "/") return <><Accueil /><div style={{ height: 110 }} /><BarreNav actif="/" grand /></>;
+  if (chemin === "" || chemin === "/") return <><Accueil /><div style={{ height: 130 }} /><BarreNav actif="/" grand /></>;
   if (chemin === "/inscription") return <AppPrincipale depart="inscription" />;
   if (chemin === "/carla") return <><Carla /><BarreNav actif="/carla" /></>;
   if (chemin === "/etudiante") return <><EspaceEtudiante /><BarreNav actif="/etudiante" /></>;
